@@ -6,6 +6,7 @@ The TinyOS tree currently carries a pinned copy of this project:
 |---|---|
 | `user/csc3/csc3.c` | `src/csc3.c` |
 | `user/rirvm/rirvm.c` | `src/rirvm.c` |
+| `user/py/` (frozen) | `src/py/` |
 | `configs/esp32c3-csc3.conf` | not in this repo; TinyOS board config |
 | `internal/build/config.go` | `[features] csc3` gate |
 
@@ -30,6 +31,15 @@ Pinned TinyOS state: code `461ad4e`, acceptance `9f198fc`.
 | `rirvm` | ~3.3 KiB | 32 KiB |
 
 `rirvm` limits: 256 IR, 512 global words, 1 KiB strings, 32 frames.
+
+## Legacy `py`
+
+TinyOS still carries `user/py` because `scripts/esp-c3/soak.py` and
+`scripts/rp2350/smptest.py` invoke `py demo.py`.  Treat that copy as frozen:
+make changes in `src/py/` here, then update the pin.  When those scripts are
+updated (or their images explicitly opt into py), delete `user/py` and keep
+only this project as the source of truth.  The plan is to retire the separate
+bytecode VM and run Python through the shared AST + RIR2 pipeline.
 
 ## Updating the pin
 

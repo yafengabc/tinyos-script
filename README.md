@@ -16,9 +16,11 @@ host.  The TinyOS tree carries only a pinned copy/port and the board config.
 ```text
 src/csc3.c            AST -> RIR2 compiler (streaming, per function)
 src/rirvm.c           portable RIR2 interpreter
+src/py/               legacy Python interpreter (frozen reference)
 include/lib.h         host shim for the TinyOS user API (desktop only)
 spec/rir2.md          RIR2 file format, opcodes, natives
-tests/                small C programs and expected results
+tests/                C programs and expected results
+tests/py/demo.py      legacy interpreter demo
 tools/test.py         host build + golden test runner
 port/tinyos/          integration notes and pinned TinyOS configuration
 ```
@@ -38,8 +40,10 @@ make
 make test
 ```
 
-The tests write extensionless images and let `rirvm` detect them by the
-`RIR2` magic; no `.rir`/`.bin` suffix is required or checked.
+The C tests write extensionless images and let `rirvm` detect them by the
+`RIR2` magic; no `.rir`/`.bin` suffix is required or checked.  The runner also
+builds the legacy `py` interpreter and checks `tests/py/demo.py` (`sum: 13`,
+`fib(10): 55`, `done`).
 
 ## Status
 
@@ -54,9 +58,31 @@ The tests write extensionless images and let `rirvm` detect them by the
 - `rirvm` is intentionally small: 256 IR, 512 global words, 1 KiB strings,
   32 frames.  Larger programs are the job of the future native backend.
 
+## Legacy `py`
+
+`src/py` is the existing Python-subset interpreter: its own lexer, compiler,
+bytecode and VM, with a small arena allocator over `sbrk()`.  It is kept here
+so the project has the full scripting story in one place and so its demo can
+be tested on the host.
+
+The long-term direction is **not** to maintain a second language stack.  The
+target is:
+
+```text
+Python source -> (shared frontend) -> AST -> RIR2 -> rirvm / irc
+```
+
+That would retire `py_compile`/`py_vm` and make Python just another frontend
+for the same register IR and backends.  Until that exists, `py` is a frozen
+reference interpreter.
+
+TinyOS still carries a copy under `user/py` because its soak/smptest scripts
+invoke it; that copy is frozen.  Make changes here first, then update the pin.
+
 ## Roadmap
 
 1. Larger RIR2 interpreter profile (48 KiB window) for medium scripts.
 2. `irc`: RIR2 -> RV32 native ELF, with target register allocation and a small
    built-in runtime; `rirvm` stays the differential-test oracle.
-3. Optional XIP/paging if native code must exceed the window.
+3. Unify the Python frontend onto AST + RIR2 (retire the separate bytecode VM).
+4. Optional XIP/paging if native code must exceed the window.

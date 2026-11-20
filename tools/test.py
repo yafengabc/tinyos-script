@@ -32,6 +32,14 @@ def main() -> int:
     compile_one(ROOT / "src" / "csc3.c", csc3)
     print("building rirvm ...")
     compile_one(ROOT / "src" / "rirvm.c", rirvm)
+    print("building py (legacy) ...")
+    py = BUILD / ("py" + EXE)
+    py_srcs = sorted(str(p) for p in (ROOT / "src" / "py").glob("*.c"))
+    subprocess.check_call([
+        CC, "-std=gnu11", "-O2", "-I", str(ROOT / "include"),
+        "-I", str(ROOT / "src" / "py"),
+        *py_srcs, str(ROOT / "tools" / "host_shim.c"), "-o", str(py),
+    ])
 
     cases = [
         ("bloop3", ["1783293664"]),
@@ -80,6 +88,16 @@ def main() -> int:
             failed += 1
         else:
             print("PASS sb3 (bounds)")
+
+    # Legacy Python interpreter, kept until the frontend is unified.
+    r = run([str(py), str(ROOT / "tests" / "py" / "demo.py")])
+    py_need = ["sum: 13", "fib(10): 55", "done"]
+    py_missing = [n for n in py_need if n not in r.stdout]
+    if r.returncode != 0 or py_missing:
+        print(f"FAIL py: rc={r.returncode} missing={py_missing}\n{r.stdout}")
+        failed += 1
+    else:
+        print("PASS py demo")
 
     print("ALL TESTS PASS" if failed == 0 else f"{failed} TEST(S) FAILED")
     return 0 if failed == 0 else 1

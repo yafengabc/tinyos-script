@@ -15,6 +15,20 @@
 #include <time.h>
 
 #define TOS_STACK(bytes)
+#define TOS_HEAP(bytes)
+#define sbrk(n) host_sbrk(n)
+void *host_sbrk(int bytes);
+
+/* Minimal TinyOS stat(): py only checks regular file and size. */
+#define TOS_FTYPE_REG 0
+#define TOS_FTYPE_DIR 1
+#define TOS_FTYPE_CHR 2
+struct stat {
+    uint32_t size;
+    uint8_t type;
+};
+int host_stat(const char *path, struct stat *st);
+#define stat(p, st) host_stat((p), (st))
 
 #define open(p)        _open((p), _O_RDONLY | _O_BINARY)
 #define create(p)      _open((p), _O_CREAT | _O_TRUNC | _O_WRONLY | _O_BINARY, 0644)
