@@ -10,7 +10,7 @@ The TinyOS tree currently carries a pinned copy of this project:
 | `configs/esp32c3-csc3.conf` | not in this repo; TinyOS board config |
 | `internal/build/config.go` | `[features] csc3` gate |
 
-Pinned TinyOS state: code `461ad4e`, acceptance `9f198fc`.
+Pinned TinyOS state: code `2f2bac6`, acceptance `696350a`.
 
 ## Integration rules
 
