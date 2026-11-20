@@ -1,4 +1,4 @@
-/* csc3 prototype: AST -> RIR -> backend interface.
+/* csc prototype: AST -> RIR -> backend interface.
  * Host prototype, not part of the TinyOS tree yet. */
 #include "lib.h"
 #include <string.h>
@@ -165,7 +165,7 @@ static int cur_ret_base = -1;
 
 static void die(const char *s)
 {
-    puts("csc3: ");
+    puts("csc: ");
     puts(s);
     puts(" at line ");
     putint(src_line);
@@ -175,7 +175,7 @@ static void die(const char *s)
 
 static void die_node(Node *n, const char *s)
 {
-    puts("csc3: ");
+    puts("csc: ");
     puts(s);
     puts(" at line ");
     putint(n ? n->line : src_line);
@@ -348,7 +348,7 @@ static int accept(const char *s)
 
 static void expect(const char *s)
 {
-    if (!accept(s)) { puts("csc3: expected "); puts(s); puts("\n"); exit(1); }
+    if (!accept(s)) { puts("csc: expected "); puts(s); puts("\n"); exit(1); }
 }
 
 static int is_kw(const char *s) { return tok_kind == 1 && !strcmp(tok, s); }
@@ -781,7 +781,7 @@ static int to_fix(int v)
     return (int)((uint32_t)v << 16);
 }
 
-/* Same Q16.16 arithmetic as rirvm's fmul16/fdiv16, so compile-time folding
+/* Same Q16.16 arithmetic as rvm's fmul16/fdiv16, so compile-time folding
  * and runtime results agree bit for bit. */
 static int fix_mul(int a, int b)
 {
@@ -1437,7 +1437,7 @@ static int func_lookup(const char *name)
     return -1;
 }
 
-/* Native ids shared with rirvm. */
+/* Native ids shared with rvm. */
 enum {
     NAT_GPIO_COUNT, NAT_GPIO_MODE, NAT_GPIO_WRITE, NAT_GPIO_READ,
     NAT_ADC_COUNT, NAT_ADC_READ, NAT_PWM_COUNT, NAT_PWM_SET, NAT_PWM_OFF,
@@ -3525,7 +3525,7 @@ int main(int argc, char **argv)
     int ai = 1;
 
     if (argc < 3) {
-        puts("usage: csc3 [-b ir|mc] input output\n");
+        puts("usage: csc [-b ir|mc] input output\n");
         return 2;
     }
     if (!strcmp(argv[ai], "-b")) {
@@ -3537,9 +3537,9 @@ int main(int argc, char **argv)
 
     if (strcmp(be, "ir")) {
         if (!strcmp(be, "mc"))
-            puts("csc3: machine-code backend not implemented yet\n");
+            puts("csc: machine-code backend not implemented yet\n");
         else
-            puts("csc3: unknown backend\n");
+            puts("csc: unknown backend\n");
         return 1;
     }
 
@@ -3560,7 +3560,7 @@ int main(int argc, char **argv)
         if (out_finish(mainid) != 0) die("write failed");
     }
 
-    puts("csc3: ");
+    puts("csc: ");
     puts(in);
     puts(" -> ");
     puts(out);

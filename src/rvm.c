@@ -1,4 +1,4 @@
-/* rirvm: run csc3's register IR. Format is detected by the RIR2 magic. */
+/* rvm: run csc's register IR. Format is detected by the RIR2 magic. */
 #include "lib.h"
 
 TOS_STACK(8 * 1024);
@@ -301,14 +301,14 @@ int main(int argc, char **argv)
     int t0, t1;
     int *regs, *spillp;
 
-    if (argc < 2) { puts("usage: rirvm file [reps]\n"); return 2; }
+    if (argc < 2) { puts("usage: rvm file [reps]\n"); return 2; }
     if (argc > 2) {
         reps = atoi(argv[2]);
         if (reps < 1) reps = 1;
     }
     verbose = (reps == 1);
     m = load_rir(argv[1]);
-    if (m < 0) { puts("rirvm: bad or missing image\n"); return 1; }
+    if (m < 0) { puts("rvm: bad or missing image\n"); return 1; }
 
     t0 = uptime();
     for (rep = 0; rep < reps; rep++) {
@@ -404,8 +404,8 @@ int main(int argc, char **argv)
             case R_PRINTV: if (verbose) putint(r[q.a]); break;
             case R_ARG: argbuf[q.a] = r[q.b]; break;
             case R_CALL:
-                if (q.a < 0 || q.a >= nfunc) { puts("rirvm: bad call\n"); return 1; }
-                if (nframe + 1 >= NFRAME) { puts("rirvm: call depth\n"); return 1; }
+                if (q.a < 0 || q.a >= nfunc) { puts("rvm: bad call\n"); return 1; }
+                if (nframe + 1 >= NFRAME) { puts("rvm: call depth\n"); return 1; }
                 nframe++;
                 regs = frames[nframe].r;
                 spillp = frames[nframe].spill;
@@ -482,7 +482,7 @@ int main(int argc, char **argv)
                 (void)a1;
                 break;
             }
-            default: puts("rirvm: bad op\n"); return 1;
+            default: puts("rvm: bad op\n"); return 1;
             }
         }
 done:

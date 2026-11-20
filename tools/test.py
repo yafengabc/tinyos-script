@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build csc3 + rirvm on the host and run the golden tests."""
+"""Build csc + rvm on the host and run the golden tests."""
 
 import os
 import subprocess
@@ -26,15 +26,15 @@ def run(cmd) -> subprocess.CompletedProcess:
 
 def main() -> int:
     BUILD.mkdir(exist_ok=True)
-    csc3 = BUILD / ("csc3" + EXE)
-    rirvm = BUILD / ("rirvm" + EXE)
-    print("building csc3 ...")
-    compile_one(ROOT / "src" / "csc3.c", csc3)
-    print("building rirvm ...")
-    compile_one(ROOT / "src" / "rirvm.c", rirvm)
-    print("building irc (C native backend) ...")
-    irc = BUILD / ("irc" + EXE)
-    compile_one(ROOT / "src" / "irc.c", irc)
+    csc = BUILD / ("csc" + EXE)
+    rvm = BUILD / ("rvm" + EXE)
+    print("building csc ...")
+    compile_one(ROOT / "src" / "csc.c", csc)
+    print("building rvm ...")
+    compile_one(ROOT / "src" / "rvm.c", rvm)
+    print("building rcc (C native backend) ...")
+    rcc = BUILD / ("rcc" + EXE)
+    compile_one(ROOT / "src" / "rcc.c", rcc)
     print("building py (legacy) ...")
     py = BUILD / ("py" + EXE)
     py_srcs = sorted(str(p) for p in (ROOT / "src" / "py").glob("*.c"))
@@ -71,27 +71,27 @@ def main() -> int:
         image = BUILD / name          # deliberately no extension
         if image.exists():
             image.unlink()
-        r = run([str(csc3), str(src), str(image)])
+        r = run([str(csc), str(src), str(image)])
         if r.returncode != 0:
-            print(f"FAIL {name}: csc3\n{r.stdout}")
+            print(f"FAIL {name}: csc\n{r.stdout}")
             failed += 1
             continue
         if not image.exists() or image.read_bytes()[:4] != b"RIR2":
             print(f"FAIL {name}: output is not RIR2")
             failed += 1
             continue
-        r = run([str(rirvm), str(image)])
+        r = run([str(rvm), str(image)])
         missing = [n for n in needles if n not in r.stdout]
         if r.returncode != 0 or missing:
-            print(f"FAIL {name}: rirvm rc={r.returncode} missing={missing}\n{r.stdout}")
+            print(f"FAIL {name}: rvm rc={r.returncode} missing={missing}\n{r.stdout}")
             failed += 1
             continue
         tos = BUILD / (name + ".tos")
         if tos.exists():
             tos.unlink()
-        r = run([str(irc), str(image), str(tos)])
+        r = run([str(rcc), str(image), str(tos)])
         if r.returncode != 0 or not tos.exists() or tos.read_bytes()[:6] != b"LZ4TOS":
-            print(f"FAIL {name}: irc rc={r.returncode}\n{r.stdout}")
+            print(f"FAIL {name}: rcc rc={r.returncode}\n{r.stdout}")
             failed += 1
         else:
             print(f"PASS {name} (+native)")
@@ -102,7 +102,7 @@ def main() -> int:
         image = BUILD / name
         if image.exists():
             image.unlink()
-        r = run([str(csc3), str(src), str(image)])
+        r = run([str(csc), str(src), str(image)])
         if r.returncode == 0 or "line 3" not in r.stdout:
             print(f"FAIL {name}: rc={r.returncode}\n{r.stdout}")
             failed += 1
@@ -114,22 +114,22 @@ def main() -> int:
     image = BUILD / "sb3"
     if image.exists():
         image.unlink()
-    r = run([str(csc3), str(src), str(image)])
+    r = run([str(csc), str(src), str(image)])
     if r.returncode != 0:
-        print(f"FAIL sb3: csc3\n{r.stdout}")
+        print(f"FAIL sb3: csc\n{r.stdout}")
         failed += 1
     else:
-        r = run([str(rirvm), str(image)])
+        r = run([str(rvm), str(image)])
         if r.returncode != 1 or "bounds" not in r.stdout:
-            print(f"FAIL sb3: rirvm rc={r.returncode}\n{r.stdout}")
+            print(f"FAIL sb3: rvm rc={r.returncode}\n{r.stdout}")
             failed += 1
         else:
             tos = BUILD / "sb3.tos"
             if tos.exists():
                 tos.unlink()
-            r = run([str(irc), str(image), str(tos)])
+            r = run([str(rcc), str(image), str(tos)])
             if r.returncode != 0 or not tos.exists() or tos.read_bytes()[:6] != b"LZ4TOS":
-                print(f"FAIL sb3: irc rc={r.returncode}\n{r.stdout}")
+                print(f"FAIL sb3: rcc rc={r.returncode}\n{r.stdout}")
                 failed += 1
             else:
                 print("PASS sb3 (bounds, +native)")
