@@ -53,8 +53,9 @@ builds the legacy `py` interpreter and checks `tests/py/demo.py` (`sum: 13`,
   for the whole program.
 - Calls use function ids from an explicit function table, so forward calls do
   not need call-site backpatching while streaming.
-- Language subset: int/float (Q16.16), structs, struct arrays, arrays, UFCS,
-  functions/recursion, if/while/for, printf/puts, GPIO/ADC/PWM/sleep/uptime.
+- Language subset: int/float (Q16.16), structs (including nested struct
+  fields), struct arrays, arrays, UFCS, functions/recursion, if/while/for,
+  printf/puts, GPIO/ADC/PWM/sleep/uptime.
 - Operators: `+ - * / %`, `< > == != <= >=`, short-circuit `&&`/`||`,
   unary `!` and `-`; integer constant folding covers the arithmetic,
   comparison and logical forms.
