@@ -48,6 +48,7 @@ def main() -> int:
         ("sa3", ["q=6", "p3=16", "gs=15", "f=3.14", "f0=3", "result=4"]),
         ("many20", ["result=210"]),
         ("flow", ["26", "3", "4", "result=26"]),
+        ("flow2", ["5", "30", "9", "result=44"]),
     ]
 
     failed = 0
