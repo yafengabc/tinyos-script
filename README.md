@@ -55,8 +55,12 @@ builds the legacy `py` interpreter and checks `tests/py/demo.py` (`sum: 13`,
   not need call-site backpatching while streaming.
 - Language subset: int/float (Q16.16), structs, struct arrays, arrays, UFCS,
   functions/recursion, if/while/for, printf/puts, GPIO/ADC/PWM/sleep/uptime.
+- Strings: `char[]` byte arrays and `string` variables in a 512-byte mutable
+  arena, with `strlen`, `strcmp`, `strlcpy`, `strlcat`, `atoi`, `print` and
+  `printf("%s")`.  String parameters and string returns are supported.
 - `rirvm` is intentionally small: 256 IR, 512 global words, 1 KiB strings,
-  32 frames.  Larger programs are the job of the future native backend.
+  512 arena bytes, 32 frames.  Larger programs are the job of the future
+  native backend.
 
 ## Legacy `py`
 

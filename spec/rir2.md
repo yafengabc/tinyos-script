@@ -15,7 +15,7 @@ All integers are little-endian int32.
 | 12 | entry | entry instruction (main) |
 | 16 | nfuncs | function table entries |
 | 20 | strsize | string pool bytes |
-| 24 | reserved | 0 |
+| 24 | dsize | mutable string-arena bytes |
 
 ## Layout
 
@@ -24,12 +24,18 @@ header (28)
 nir * 20-byte instruction records
 nfuncs * 4-byte entry PCs
 strsize bytes of NUL-terminated strings
+dsize bytes of initial string-arena data
 ```
 
 An instruction record is five int32s: `op, a, b, c, d`.  Operand meaning is
 opcode-specific.  Branches store absolute instruction indices in the final
 image.  CALL stores a function id in `a`; the VM resolves it through the
 function table.
+
+`strsize` bytes are read-only literals used by `PRINTS`, `PRINTN` and printf
+formats.  `dsize` bytes are a writable arena holding `char[]` storage and the
+copies of string literals used as values.  The VM keeps this initial image and
+restores it at the start of every repetition.
 
 ## Execution model
 
@@ -56,7 +62,8 @@ JLT_I JGE_I JGT_I JLE_I JEQ_I JNE_I
 STOREA_I NOP PRINTS PRINTN PRINTV
 NATIVE NATIVER LOADD STORED
 SHLI SHRI FMUL FDIV PRINTFIX PRINTFIXV
-BOUNDS PRINTFIXN
+BOUNDS PRINTFIXN MOD
+LOADB STOREB STRCPY STRCAT STRLEN STRCMP ATOI PRINTSTR
 ```
 
 Field conventions worth noting:
@@ -69,8 +76,20 @@ Field conventions worth noting:
 - `JMP target`; `JZ value, target`; fused branches use `c` as target.
 - `CALL funcid, dst, argc`
 - `BOUNDS index, len`
+- `LOADB base, index, -, dst` (byte from the arena)
+- `STOREB base, index, value, -`
+- `STRCPY dstptr, srcptr, cap, dst` (strlcpy semantics; length in `dst`)
+- `STRCAT dstptr, srcptr, cap, dst` (strlcat semantics; length in `dst`)
+- `STRLEN srcptr, -, -, dst`
+- `STRCMP aptr, bptr, -, dst`
+- `ATOI srcptr, -, -, dst`
+- `PRINTSTR ptr` (no trailing newline)
 - `NATIVE id, arg0, arg1, arg2`
 - `NATIVER id, arg0, arg1, dst`
+
+String pointers are arena byte offsets in a register.  A negative offset is a
+null string.  `LOADB`/`STOREB` carry the array base as an immediate and the
+index in a register; `BOUNDS` is emitted first by the compiler.
 
 ## Native ids
 

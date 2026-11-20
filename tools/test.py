@@ -52,6 +52,7 @@ def main() -> int:
         ("switch", ["105", "2", "3", "result=105"]),
         ("fold", ["14", "3", "result=17"]),
         ("mod", ["2", "2", "2", "2", "result=6"]),
+        ("str", ["Hi", "65", "hello", "from-fn", "4", "world!", "xorld!", "lit", "loc=loX", "g=Xy", "0", "-42", "name=Xy", "n=5", "result=5"]),
     ]
 
     failed = 0
