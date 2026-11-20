@@ -160,6 +160,8 @@ static int nir;
 static int vreg;
 static int last_type;
 static int cur_rtype;
+static int cur_rstruct;
+static int cur_ret_base = -1;
 
 static void die(const char *s)
 {
@@ -1700,6 +1702,59 @@ static int gen_struct_ref(Node *n)
     return 0;
 }
 
+static int member_base(Sym *s, int poff)
+{
+    int base;
+
+    if (s->is_param) {
+        if (!poff)
+            return s->reg;
+        base = new_temp();
+        emit(R_ADDI, s->reg, poff, 0, base);
+        return base;
+    }
+    base = new_temp();
+    emit(R_CONST, s->offset + poff, 0, 0, base);
+    return base;
+}
+
+static void copy_struct_words(int dstbase, int srcbase, int nw)
+{
+    for (int i = 0; i < nw; i++) {
+        int v = new_temp();
+        emit(R_LOADD, srcbase, i, 0, v);
+        emit(R_STORED, dstbase, i, v, 0);
+    }
+}
+
+static void emit_struct_call(int fid, Node *args, int dstbase)
+{
+    int argc = 0;
+
+    for (Node *p = args; p; p = p->next) {
+        int v, pt;
+        if (argc >= funcs[fid].nparams)
+            die_node(p, "too many arguments");
+        pt = funcs[fid].ptype[argc];
+        if (pt > 0) {
+            v = gen_struct_ref(p);
+        } else {
+            v = gen_value(p);
+            if (pt == -2) {
+                if (last_type != 2)
+                    die_node(p, "string argument expected");
+            } else {
+                v = coerce_to(v, last_type, pt < 0 ? 1 : 0);
+            }
+        }
+        emit(R_ARG, argc++, v, 0, 0);
+    }
+    if (argc != funcs[fid].nparams)
+        die_node(args, "wrong argument count");
+    emit(R_ARG, argc++, dstbase, 0, 0);
+    emit(R_CALL, fid, new_temp(), argc, 0);
+}
+
 static Node *arg_at(Node *a, int i)
 {
     while (a && i-- > 0)
@@ -1862,8 +1917,22 @@ static int gen_expr_into(Node *n, int dst)
         s = sym_find(n->name);
         if (!s || !s->is_struct) die_node(n, "struct variable expected");
         ptype = struct_path(s->stype, n->field, &poff);
-        if (ptype != 0)
-            die_node(n, "struct field assignment not supported");
+        if (ptype > 0) {
+            int base = member_base(s, poff), fid, src;
+            if (n->lhs->kind == N_CALL) {
+                fid = func_lookup(n->lhs->name);
+                if (fid < 0 || funcs[fid].rtype_struct != ptype)
+                    die_node(n, "struct-returning function expected");
+                emit_struct_call(fid, n->lhs->args, base);
+            } else {
+                if (node_struct_type(n->lhs) != ptype)
+                    die_node(n, "struct type mismatch");
+                src = gen_struct_ref(n->lhs);
+                copy_struct_words(base, src, structs[ptype - 1].size);
+            }
+            last_type = 0;
+            return 0;
+        }
         a = gen_value(n->lhs);
         a = coerce_to(a, last_type, 0);
         if (s->is_param) emit(R_STORED, s->reg, poff, a, 0);
@@ -1891,15 +1960,34 @@ static int gen_expr_into(Node *n, int dst)
         s = sym_find(n->name);
         if (!s || !s->is_struct || !s->is_array) die_node(n, "struct array expected");
         ptype = struct_path(s->stype, n->field, &poff);
-        if (ptype != 0)
-            die_node(n, "struct field assignment not supported");
         a = gen_value(n->lhs);
         a = coerce_to(a, last_type, 0);
         emit(R_BOUNDS, a, s->alen, 0, 0);
         base = struct_base(s, a);
+        if (poff) {
+            int t = new_temp();
+            emit(R_ADDI, base, poff, 0, t);
+            base = t;
+        }
+        if (ptype > 0) {
+            int fid, src;
+            if (n->rhs->kind == N_CALL) {
+                fid = func_lookup(n->rhs->name);
+                if (fid < 0 || funcs[fid].rtype_struct != ptype)
+                    die_node(n, "struct-returning function expected");
+                emit_struct_call(fid, n->rhs->args, base);
+            } else {
+                if (node_struct_type(n->rhs) != ptype)
+                    die_node(n, "struct type mismatch");
+                src = gen_struct_ref(n->rhs);
+                copy_struct_words(base, src, structs[ptype - 1].size);
+            }
+            last_type = 0;
+            return 0;
+        }
         b = gen_value(n->rhs);
         b = coerce_to(b, last_type, 0);
-        emit(R_STORED, base, poff, b, 0);
+        emit(R_STORED, base, 0, b, 0);
         last_type = 0;
         return b;
     }
@@ -1907,8 +1995,20 @@ static int gen_expr_into(Node *n, int dst)
         s = sym_find(n->name);
         if (!s) die_node(n, "unknown variable");
         if (s->is_struct) {
-            int nf, i, srcbase, stype;
-            if (s->is_array || s->is_param) die_node(n, "struct assignment target");
+            int nf, i, srcbase, stype, fid;
+            if (s->is_array) die_node(n, "struct assignment target");
+            if (n->lhs->kind == N_CALL) {
+                fid = func_lookup(n->lhs->name);
+                if (fid < 0 || funcs[fid].rtype_struct != s->stype)
+                    die_node(n, "struct-returning function expected");
+                srcbase = s->is_param ? s->reg : new_temp();
+                if (!s->is_param)
+                    emit(R_CONST, s->offset, 0, 0, srcbase);
+                emit_struct_call(fid, n->lhs->args, srcbase);
+                last_type = 0;
+                return 0;
+            }
+            if (s->is_param) die_node(n, "struct assignment target");
             stype = node_struct_type(n->lhs);
             if (stype != s->stype)
                 die_node(n, "struct type mismatch");
@@ -2037,6 +2137,8 @@ static int gen_expr_into(Node *n, int dst)
         }
         fid = func_lookup(n->name);
         if (fid < 0) die_node(n, "unknown function");
+        if (funcs[fid].rtype_struct > 0)
+            die_node(n, "struct-returning call needs an assignment target");
         for (Node *p = n->args; p; p = p->next) {
             int v, to, pt;
             if (argc >= funcs[fid].nparams) die_node(n, "too many arguments");
@@ -2372,7 +2474,31 @@ static void gen_stmt(Node *n)
         break;
     }
     case N_RETURN: {
-        int v = gen_value(n->lhs);
+        int v;
+        if (cur_rstruct > 0) {
+            if (n->lhs->kind == N_CALL) {
+                int fid = func_lookup(n->lhs->name);
+                if (fid < 0 || funcs[fid].rtype_struct != cur_rstruct)
+                    die_node(n, "struct-returning function expected");
+                emit_struct_call(fid, n->lhs->args, cur_ret_base);
+            } else {
+                int src, nw;
+                if (node_struct_type(n->lhs) != cur_rstruct)
+                    die_node(n, "struct return value mismatch");
+                src = gen_struct_ref(n->lhs);
+                nw = structs[cur_rstruct - 1].size;
+                for (int i = 0; i < nw; i++) {
+                    int t = new_temp();
+                    emit(R_LOADD, src, i, 0, t);
+                    emit(R_STORED, cur_ret_base, i, t, 0);
+                }
+            }
+            v = new_temp();
+            emit(R_CONST, 0, 0, 0, v);
+            emit(R_RET, v, 0, 0, 0);
+            break;
+        }
+        v = gen_value(n->lhs);
         if (cur_rtype == 2) {
             if (last_type != 2)
                 die_node(n, "string return value expected");
@@ -2827,7 +2953,7 @@ static void allocate_func(int fi, int lo, int hi)
     int order[VREG_MAX], m = 0;
     int reg_end[NPHYS];
     int *phys = func_phys, *slot = func_slot;
-    int nparams = funcs[fi].nparams;
+    int nparams = funcs[fi].nparams + (funcs[fi].rtype_struct > 0 ? 1 : 0);
 
     for (int v = 0; v < VREG_MAX; v++) {
         first[v] = -1; last[v] = -1; phys[v] = -1; slot[v] = -1;
@@ -3073,7 +3199,7 @@ static void skip_balanced(void)
 
 /* Parse and emit one function.  The return type and name are already
  * consumed; the current token is '('.  In pass 1 the body is skipped. */
-static void parse_function(int pass, int rtype, const char *name, int *fi)
+static void parse_function(int pass, int rtype, int rstruct, const char *name, int *fi)
 {
     Func *f;
     Node *body;
@@ -3084,11 +3210,13 @@ static void parse_function(int pass, int rtype, const char *name, int *fi)
         f = &funcs[nfuncs++];
         memset(f, 0, sizeof *f);
         f->rtype = rtype;
+        f->rtype_struct = rstruct;
         strncpy(f->name, name, sizeof(f->name) - 1);
     } else {
         if (*fi >= nfuncs) die("function table mismatch");
         f = &funcs[*fi];
         if (strcmp(f->name, name)) die("function order mismatch");
+        if (f->rtype_struct != rstruct) die("function return type mismatch");
         f->nparams = 0;
     }
 
@@ -3156,9 +3284,13 @@ static void parse_function(int pass, int rtype, const char *name, int *fi)
             ps->is_float = 1;
         }
     }
+    if (f->rtype_struct > 0)
+        nlocals++;            /* hidden destination base at r[nparams] */
     declare_locals(body);
     vreg = nlocals;
     cur_rtype = f->rtype;
+    cur_rstruct = f->rtype_struct;
+    cur_ret_base = f->rtype_struct > 0 ? f->nparams : -1;
     gen_stmt(body);
     {
         int z = new_temp();
@@ -3281,6 +3413,10 @@ static void parse_program(int pass)
             strncpy(vname, tok, sizeof(vname) - 1);
             vname[sizeof(vname) - 1] = 0;
             next();
+            if (tok_kind == 3 && !strcmp(tok, "(")) {
+                parse_function(pass, 0, sid, vname, &fi);
+                continue;
+            }
             if (accept("[")) {
                 int len;
                 if (tok_kind != 2) die("struct array length expected");
@@ -3315,7 +3451,7 @@ static void parse_program(int pass)
             if (tok_kind == 3 && !strcmp(tok, "(")) {
                 if (!is_str)
                     die("char return type is not supported");
-                parse_function(pass, 2, name, &fi);
+                parse_function(pass, 2, 0, name, &fi);
                 continue;
             }
             if (accept("=")) {
@@ -3357,7 +3493,7 @@ static void parse_program(int pass)
             next();
 
             if (tok_kind == 3 && !strcmp(tok, "(")) {
-                parse_function(pass, rtype, name, &fi);
+                parse_function(pass, rtype, 0, name, &fi);
                 continue;
             }
 

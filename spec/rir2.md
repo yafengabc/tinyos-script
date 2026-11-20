@@ -43,6 +43,9 @@ restores it at the start of every repetition.
 - 16 registers per frame; r13–r15 are spill scratch during execution of
   rewritten code.
 - Arguments are staged by `ARG` and copied into the callee's r0.. by `CALL`.
+- A struct-returning function receives one hidden extra argument after its
+  declared parameters: the destination word base.  It copies the result there
+  and returns 0.
 - `RET` returns the value in its operand to the caller's destination register.
 - Array and struct-array indexing carry a length and trap with `bounds` when
   the index is outside the array.

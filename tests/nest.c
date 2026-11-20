@@ -46,6 +46,10 @@ int main() {
 
     t.x = 20;
     t.y = 21;
+    o.in = t;
+    print(o.in.x);
+    arr[0].p = t;
+    print(arr[0].p.y);
     q.in.x = t.x;
     q.in.y = t.y;
     q.z = 22;
