@@ -11,7 +11,7 @@ The TinyOS tree currently carries a pinned copy of this project:
 | `internal/build/config.go` | `[features] csc3` gate |
 | `goc32/cmd/irc` | native RV32 backend; uses this repo's `src/csc3.c` output, but lives in TinyOS because it reuses goc32's assembler/linker/LZ4TOS |
 
-Pinned TinyOS state: code `04e67e2`, acceptance `0c1356d`.
+Pinned TinyOS state: code `04e67e2`, acceptance `e601764`.
 
 ## Integration rules
 

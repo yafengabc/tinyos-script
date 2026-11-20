@@ -70,6 +70,19 @@ builds the legacy `py` interpreter and checks `tests/py/demo.py` (`sum: 13`,
   512 arena bytes, 32 frames.  Larger programs are the job of the future
   native backend.
 
+## On-board speed (ESP32-C3)
+
+Same source, timed with `uptime()` around the workload:
+
+| workload | csc + pvm | csc3 + rirvm | native irc |
+|---|---:|---:|---:|
+| recursive `fib(24)` | 608 ms | 242 ms | 84 ms |
+| 10,000,000-iteration loop | 53698 ms | 8286 ms | 578 ms |
+
+`tests/benchfib.c` and `tests/benchloop.c` are the manual benchmark sources.
+Native is 7.2x faster than `csc + pvm` on recursion and 92.9x faster on the
+loop; the recursive case is dominated by the 13-register frame save/restore.
+
 ## Legacy `py`
 
 `src/py` is the existing Python-subset interpreter: its own lexer, compiler,
