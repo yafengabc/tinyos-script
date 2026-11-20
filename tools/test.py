@@ -50,6 +50,7 @@ def main() -> int:
         ("flow", ["26", "3", "4", "result=26"]),
         ("flow2", ["5", "30", "9", "result=44"]),
         ("switch", ["105", "2", "3", "result=105"]),
+        ("fold", ["14", "3", "result=17"]),
     ]
 
     failed = 0
