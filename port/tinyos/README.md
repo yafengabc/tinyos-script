@@ -10,7 +10,7 @@ The TinyOS tree currently carries a pinned copy of this project:
 | `configs/esp32c3-csc3.conf` | not in this repo; TinyOS board config |
 | `internal/build/config.go` | `[features] csc3` gate |
 
-Pinned TinyOS state: code `2f2bac6`, acceptance `696350a`.
+Pinned TinyOS state: code `6b13bc1`, acceptance `e401eee`.
 
 ## Integration rules
 
@@ -27,10 +27,11 @@ Pinned TinyOS state: code `2f2bac6`, acceptance `696350a`.
 
 | binary | /bin size | window |
 |---|---:|---:|
-| `csc3` | ~17.9 KiB | 92 KiB |
-| `rirvm` | ~3.3 KiB | 32 KiB |
+| `csc3` | ~29.7 KiB | 116 KiB |
+| `rirvm` | ~4.7 KiB | 32 KiB |
 
-`rirvm` limits: 256 IR, 512 global words, 1 KiB strings, 32 frames.
+`rirvm` limits: 256 IR, 512 global words, 1 KiB strings, 512 arena bytes,
+32 frames.
 
 ## Legacy `py`
 
