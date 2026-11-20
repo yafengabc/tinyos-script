@@ -20,6 +20,7 @@ src/rcc/            RIR2 -> native backend; rcc.c shared + rv32.inc
 src/py/               legacy Python interpreter (frozen reference)
 include/lib.h         host shim for the TinyOS user API (desktop only)
 spec/rir2.md          RIR2 file format, opcodes, natives
+docs/                 csc.md, rvm.md, rcc.md (toolchain notes)
 tests/                C programs and expected results
 tests/py/demo.py      legacy interpreter demo
 tools/test.py         host build + golden test runner
