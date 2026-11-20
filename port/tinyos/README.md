@@ -12,7 +12,7 @@ The TinyOS tree currently carries a pinned copy of this project:
 | `internal/build/config.go` | `[features] csc3` gate |
 | `goc32/cmd/irc` | Go reference for the native backend; the board-side C implementation is `src/irc.c` |
 
-Pinned TinyOS state: code `4859ec6`, acceptance `e392e25`.
+Pinned TinyOS state: code `6d54b5a`, acceptance `88fd539`.
 
 ## Integration rules
 
@@ -34,7 +34,7 @@ Pinned TinyOS state: code `4859ec6`, acceptance `e392e25`.
 |---|---:|---:|
 | `csc3` | ~35.2 KiB | 124 KiB |
 | `rirvm` | ~4.7 KiB | 32 KiB |
-| `irc` | ~39.9 KiB | 156 KiB |
+| `irc` | ~18.1 KiB | 72 KiB |
 
 `rirvm` limits: 256 IR, 512 global words, 1 KiB strings, 512 arena bytes,
 32 frames.
