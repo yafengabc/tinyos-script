@@ -53,6 +53,7 @@ def main() -> int:
         ("fold", ["14", "3", "result=17"]),
         ("mod", ["2", "2", "2", "2", "result=6"]),
         ("str", ["Hi", "65", "hello", "from-fn", "4", "world!", "xorld!", "lit", "loc=loX", "g=Xy", "0", "-42", "name=Xy", "n=5", "result=5"]),
+        ("ops", ["1", "0", "111", "222", "333", "555", "444", "result=3"]),
     ]
 
     failed = 0

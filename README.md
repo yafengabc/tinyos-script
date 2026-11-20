@@ -55,6 +55,9 @@ builds the legacy `py` interpreter and checks `tests/py/demo.py` (`sum: 13`,
   not need call-site backpatching while streaming.
 - Language subset: int/float (Q16.16), structs, struct arrays, arrays, UFCS,
   functions/recursion, if/while/for, printf/puts, GPIO/ADC/PWM/sleep/uptime.
+- Operators: `+ - * / %`, `< > == != <= >=`, short-circuit `&&`/`||`,
+  unary `!` and `-`; integer constant folding covers the arithmetic,
+  comparison and logical forms.
 - Strings: `char[]` byte arrays and `string` variables in a 512-byte mutable
   arena, with `strlen`, `strcmp`, `strlcpy`, `strlcat`, `atoi`, `print` and
   `printf("%s")`.  String parameters and string returns are supported.
