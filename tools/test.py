@@ -75,6 +75,19 @@ def main() -> int:
         else:
             print(f"PASS {name}")
 
+    # Diagnostics must name the source line for both parse and codegen errors.
+    for name in ("badline", "badvar"):
+        src = ROOT / "tests" / (name + ".c")
+        image = BUILD / name
+        if image.exists():
+            image.unlink()
+        r = run([str(csc3), str(src), str(image)])
+        if r.returncode == 0 or "line 3" not in r.stdout:
+            print(f"FAIL {name}: rc={r.returncode}\n{r.stdout}")
+            failed += 1
+        else:
+            print(f"PASS {name} (line 3)")
+
     # Out-of-bounds must be diagnosed by the image's BOUNDS op, not a crash.
     src = ROOT / "tests" / "sb3.c"
     image = BUILD / "sb3"
