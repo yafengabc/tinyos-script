@@ -63,6 +63,24 @@ def main() -> int:
         ("sret", ["3", "4", "13", "14", "23", "24", "7", "8", "result=17"]),
         ("native", ["6765", "result=55"]),
         ("fmt", ["3.14", "1.25", "0.50", "2.00", "result=0"]),
+        ("arith", ["-3", "-2", "17", "9", "20", "14", "-14", "result=0"]),
+        ("cmp2", ["1", "0", "7", "result=0"]),
+        ("loops2", ["8", "4", "10", "13", "result=0"]),
+        ("switch2", ["23", "99", "result=99"]),
+        ("funcs", ["36", "720", "result=8"]),
+        ("struct3", ["1", "4", "3", "7", "result=7"]),
+        ("strings2", ["ab", "hello", "-1", "abcZ", "42", "-7", "result=0"]),
+        ("float3", ["-0.75", "3.75", "-3.375", "-0.6667", "-1.5", "-1.25", "result=0"]),
+        ("arrays2", ["30", "4", "13", "result=16"]),
+        ("globals2", ["6", "7", "15", "ok", "result=7"]),
+        ("spill", ["66", "395", "result=0"]),
+        ("deep", ["325", "result=55"]),
+        ("mixed", ["n=7", "2.0", "ok", "result=4"]),
+        ("many25", ["120", "result=0"]),
+        ("many32", ["496", "result=0"]),
+        ("bigswitch", ["1836", "117", "result=0"]),
+        ("bigbody", ["7432", "15", "result=0"]),
+        ("mixbig", ["25", "97", "mixbig", "12", "134", "result=34"]),
     ]
 
     failed = 0
@@ -95,6 +113,48 @@ def main() -> int:
             failed += 1
         else:
             print(f"PASS {name} (+native)")
+
+    # Programs past the interpreter profile (rvm: 256 IR) still have to reach a
+    # native image.  They cannot be validated by rvm on the host, so the
+    # expected values come from a host C build and execution happens on the
+    # target (QEMU smoke / hardware).  Keep the split honest: if the image
+    # would fit rvm, it belongs in the table above instead.
+    native_only = [
+        ("bigcode", ["12829"]),          # 31 functions, ~6 KiB source
+    ]
+    for name, needles in native_only:
+        src = ROOT / "tests" / (name + ".c")
+        image = BUILD / name
+        if image.exists():
+            image.unlink()
+        r = run([str(csc), str(src), str(image)])
+        if r.returncode != 0:
+            print(f"FAIL {name}: csc\n{r.stdout}")
+            failed += 1
+            continue
+        data = image.read_bytes() if image.exists() else b""
+        if data[:4] != b"RIR2":
+            print(f"FAIL {name}: output is not RIR2")
+            failed += 1
+            continue
+        ir = int.from_bytes(data[4:6], "little")
+        if ir <= 256:
+            print(f"FAIL {name}: ir={ir} fits rvm; move it to the main table")
+            failed += 1
+            continue
+        tos = BUILD / (name + ".tos")
+        if tos.exists():
+            tos.unlink()
+        r = run([str(rcc), str(image), str(tos)])
+        if r.returncode != 0 or not tos.exists() or tos.read_bytes()[:6] != b"LZ4TOS":
+            print(f"FAIL {name}: rcc rc={r.returncode}\n{r.stdout}")
+            failed += 1
+        else:
+            text = ""
+            for line in r.stdout.splitlines():
+                if line.startswith("rcc: "):
+                    text = line.split()[1]
+            print(f"PASS {name} (native-only, ir={ir}, text={text})")
 
     # Diagnostics must name the source line for both parse and codegen errors.
     for name in ("badline", "badvar"):
