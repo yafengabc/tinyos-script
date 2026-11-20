@@ -27,7 +27,17 @@ Pinned TinyOS state: code `0ae04d7`, acceptance `afd13fe`.
 - `csc` needs a source file and an output path; `rvm` needs only the image.
   Both can be extensionless.
 - `rcc` reads RIR2 and writes an RV32 ELF/LZ4TOS image.  The C version runs on
-  the board (`user/rcc.c`); `goc32/cmd/rcc` is the host reference.
+  the board (`user/rcc/rcc.c`); `goc32/cmd/rcc` is the host reference.
+- `Copy-Item` keeps the source timestamp.  TinyOS rebuilds a user program only
+  when its source is newer than the object, so a copy can silently leave a stale
+  binary in the image (it happened with `csc`: the build kept the 32-function
+  table while `user/csc/csc.c` already had 256).  Touch the destination after
+  copying:
+
+  ```powershell
+  Copy-Item ..\tinyos-script\src\csc.c user\csc\csc.c -Force
+  (Get-Item user\csc\csc.c).LastWriteTime = Get-Date
+  ```
 
 ## Board numbers (ESP32-C3, `esp32c3-rir.conf`)
 

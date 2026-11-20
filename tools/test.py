@@ -121,6 +121,9 @@ def main() -> int:
     # would fit rvm, it belongs in the table above instead.
     native_only = [
         ("bigcode", ["12829"]),          # 31 functions, ~6 KiB source
+        ("many100", ["20009"]),          # 111 functions: the UFCS shape
+        ("bigir", ["1325"]),             # ~1.4k IR, board-compilable
+        ("hugeir", ["1536"]),            # ~3k IR, host rcc only
     ]
     for name, needles in native_only:
         src = ROOT / "tests" / (name + ".c")
