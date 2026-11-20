@@ -11,7 +11,7 @@ The TinyOS tree currently carries a pinned copy of this project:
 | `internal/build/config.go` | `[features] csc3` gate |
 | `goc32/cmd/irc` | native RV32 backend; uses this repo's `src/csc3.c` output, but lives in TinyOS because it reuses goc32's assembler/linker/LZ4TOS |
 
-Pinned TinyOS state: code `5e5edd8`, acceptance `cb35e63`.
+Pinned TinyOS state: code `04e67e2`, acceptance `91cb917`.
 
 ## Integration rules
 
@@ -23,6 +23,9 @@ Pinned TinyOS state: code `5e5edd8`, acceptance `cb35e63`.
   filename suffixes in the shell, compiler or VM.
 - `csc3` needs a source file and an output path; `rirvm` needs only the image.
   Both can be extensionless.
+- `irc` (RIR2 -> RV32 ELF) currently lives in `goc32/cmd/irc` and runs on the
+  PC.  The final C port is intended to run on the board; the RIR2 image is the
+  stable interface between them.
 
 ## Board numbers (ESP32-C3, `esp32c3-csc3.conf`)
 
