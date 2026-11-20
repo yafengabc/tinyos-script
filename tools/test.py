@@ -54,6 +54,8 @@ def main() -> int:
         ("mod", ["2", "2", "2", "2", "result=6"]),
         ("str", ["Hi", "65", "hello", "from-fn", "4", "world!", "xorld!", "lit", "loc=loX", "g=Xy", "0", "-42", "name=Xy", "n=5", "result=5"]),
         ("ops", ["1", "0", "111", "222", "333", "555", "444", "result=3"]),
+        ("floatfold", ["3.0", "1.5", "1.75", "result=0"]),
+        ("copy", ["10", "7", "result=99"]),
     ]
 
     failed = 0

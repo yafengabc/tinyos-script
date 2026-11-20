@@ -58,6 +58,8 @@ builds the legacy `py` interpreter and checks `tests/py/demo.py` (`sum: 13`,
 - Operators: `+ - * / %`, `< > == != <= >=`, short-circuit `&&`/`||`,
   unary `!` and `-`; integer constant folding covers the arithmetic,
   comparison and logical forms.
+- Optimizer: integer and Q16.16 constant folding, straight-line copy
+  propagation, dead pure definitions, and NOP compaction with branch remap.
 - Strings: `char[]` byte arrays and `string` variables in a 512-byte mutable
   arena, with `strlen`, `strcmp`, `strlcpy`, `strlcat`, `atoi`, `print` and
   `printf("%s")`.  String parameters and string returns are supported.
