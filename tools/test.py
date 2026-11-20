@@ -49,6 +49,7 @@ def main() -> int:
         ("many20", ["result=210"]),
         ("flow", ["26", "3", "4", "result=26"]),
         ("flow2", ["5", "30", "9", "result=44"]),
+        ("switch", ["105", "2", "3", "result=105"]),
     ]
 
     failed = 0
