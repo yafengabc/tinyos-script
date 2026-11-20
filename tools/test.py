@@ -159,6 +159,32 @@ def main() -> int:
                     text = line.split()[1]
             print(f"PASS {name} (native-only, ir={ir}, text={text})")
 
+    # Target-only features: csc and rcc must produce an image, but the host
+    # rvm has no child processes or TinyOS filesystem, so execution is checked
+    # on QEMU (or a board) with the same needles.
+    target_only = [
+        ("exec1", ["hello from ring 3!", "0"]),
+    ]
+    for name, needles in target_only:
+        src = ROOT / "tests" / (name + ".c")
+        image = BUILD / name
+        if image.exists():
+            image.unlink()
+        r = run([str(csc), str(src), str(image)])
+        if r.returncode != 0:
+            print(f"FAIL {name}: csc\n{r.stdout}")
+            failed += 1
+            continue
+        tos = BUILD / (name + ".tos")
+        if tos.exists():
+            tos.unlink()
+        r = run([str(rcc), str(image), str(tos)])
+        if r.returncode != 0 or not tos.exists() or tos.read_bytes()[:6] != b"LZ4TOS":
+            print(f"FAIL {name}: rcc rc={r.returncode}\n{r.stdout}")
+            failed += 1
+        else:
+            print(f"PASS {name} (target-only: {'; '.join(needles)})")
+
     # Diagnostics must name the source line for both parse and codegen errors.
     for name in ("badline", "badvar"):
         src = ROOT / "tests" / (name + ".c")

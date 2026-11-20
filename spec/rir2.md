@@ -101,8 +101,13 @@ index in a register; `BOUNDS` is emitted first by the compiler.
 ```text
 0  gpio_count     1  gpio_mode      2  gpio_write    3  gpio_read
 4  adc_count      5  adc_read       6  pwm_count     7  pwm_set
-8  pwm_off        9  sleep          10 uptime
+8  pwm_off        9  sleep          10 uptime        11 run(path)
 ```
+
+`run(path)` spawns the named program, waits for it, and returns its exit code
+(negative when the spawn fails).  It does **not** replace the caller: TinyOS's
+`exec()` creates a child and `wait()` returns the status.  The argument is an
+arena offset, not an int; `csc` checks that the source passes a string.
 
 The native table is part of the ABI and must stay in sync with the TinyOS
 port and with `rcc`.

@@ -73,6 +73,22 @@ the real names, so a collision (equal hash, different spelling) is detected at
 insertion and reported instead of silently merging.  Declarations and dotted
 field paths are the only node text kept, in a scratch pool reset per function.
 
+## Native functions
+
+Besides string builtins (`strlen`, `strcmp`, `strlcpy`, `strlcat`, `atoi`,
+`print`/`printf`/`puts`), a small native table is available:
+
+| Name | Args | Returns |
+|---|---|---|
+| `gpio_count/mode/write/read` | 0-2 | some |
+| `adc_count/read`, `pwm_count/set/off` | 0-3 | some |
+| `sleep`, `uptime` | 0-1 | some |
+| `run(path)` | 1 string | child exit code |
+
+`run()` spawns the program and waits; it does not replace the caller.  The
+argument is checked to be a string (`csc` rejects `run(42)`).  The host `rvm`
+returns -1 because it has no child processes; QEMU/boards exercise it.
+
 ## Output and diagnostics
 
 The output starts with the `RIR2` magic; no filename suffix is required.
