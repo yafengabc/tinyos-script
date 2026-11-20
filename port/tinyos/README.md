@@ -6,10 +6,11 @@ The TinyOS tree currently carries a pinned copy of this project:
 |---|---|
 | `user/csc3/csc3.c` | `src/csc3.c` |
 | `user/rirvm/rirvm.c` | `src/rirvm.c` |
+| `user/irc.c` | `src/irc.c` |
 | `user/py/` (frozen) | `src/py/` |
 | `configs/esp32c3-csc3.conf` | not in this repo; TinyOS board config |
 | `internal/build/config.go` | `[features] csc3` gate |
-| `goc32/cmd/irc` | native RV32 backend; uses this repo's `src/csc3.c` output, but lives in TinyOS because it reuses goc32's assembler/linker/LZ4TOS |
+| `goc32/cmd/irc` | Go reference for the native backend; the board-side C implementation is `src/irc.c` |
 
 Pinned TinyOS state: code `04e67e2`, acceptance `e601764`.
 
@@ -33,6 +34,7 @@ Pinned TinyOS state: code `04e67e2`, acceptance `e601764`.
 |---|---:|---:|
 | `csc3` | ~35.2 KiB | 124 KiB |
 | `rirvm` | ~4.7 KiB | 32 KiB |
+| `irc` | ~39.9 KiB | 156 KiB |
 
 `rirvm` limits: 256 IR, 512 global words, 1 KiB strings, 512 arena bytes,
 32 frames.

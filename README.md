@@ -4,7 +4,7 @@ Standalone compiler/VM experiment for TinyOS scripting:
 
 ```text
 source.c --csc3--> RIR2 image --rirvm--> run (small, portable VM)
-                              \--irc--> native ELF (planned, per target)
+                              \--irc--> native RV32 ELF (C, board-side)
 ```
 
 The project is deliberately independent of the TinyOS build matrix so the
@@ -16,6 +16,7 @@ host.  The TinyOS tree carries only a pinned copy/port and the board config.
 ```text
 src/csc3.c            AST -> RIR2 compiler (streaming, per function)
 src/rirvm.c           portable RIR2 interpreter
+src/irc.c             RIR2 -> RV32 ELF/LZ4TOS native backend (board-side C)
 src/py/               legacy Python interpreter (frozen reference)
 include/lib.h         host shim for the TinyOS user API (desktop only)
 spec/rir2.md          RIR2 file format, opcodes, natives
@@ -63,12 +64,15 @@ builds the legacy `py` interpreter and checks `tests/py/demo.py` (`sum: 13`,
   propagation, dead pure definitions, and NOP compaction with branch remap.
 - `tests/benchfib.c` / `tests/benchloop.c` are manual on-board speed
   benchmarks (uptime-based), not part of the golden runner.
+- `src/irc.c` compiles RIR2 to a TinyOS-loadable RV32 ELF and a stored-LZ4TOS
+  envelope.  It runs on the board (`user/irc.c`) and on the host; every golden
+  test is also assembled natively by `tools/test.py`.
 - Strings: `char[]` byte arrays and `string` variables in a 512-byte mutable
   arena, with `strlen`, `strcmp`, `strlcpy`, `strlcat`, `atoi`, `print` and
   `printf("%s")`.  String parameters and string returns are supported.
 - `rirvm` is intentionally small: 256 IR, 512 global words, 1 KiB strings,
-  512 arena bytes, 32 frames.  Larger programs are the job of the future
-  native backend.
+  512 arena bytes, 32 frames.  Larger programs are the job of `irc` or the
+  future larger interpreter profile.
 
 ## On-board speed (ESP32-C3)
 
@@ -107,8 +111,8 @@ invoke it; that copy is frozen.  Make changes here first, then update the pin.
 ## Roadmap
 
 1. Larger RIR2 interpreter profile (48 KiB window) for medium scripts.
-2. `irc`: RIR2 -> RV32 native ELF; the first backend lives in TinyOS
-   `goc32/cmd/irc` and reuses goc32's assembler, ELF linker and LZ4TOS
-   packer.  `rirvm` stays the differential-test oracle.
+2. `irc`: RIR2 -> RV32 native ELF.  The board-side C implementation is
+   `src/irc.c`; the earlier Go reference remains in TinyOS `goc32/cmd/irc`.
+   `rirvm` stays the differential-test oracle.
 3. Unify the Python frontend onto AST + RIR2 (retire the separate bytecode VM).
 4. Optional XIP/paging if native code must exceed the window.

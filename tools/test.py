@@ -32,6 +32,9 @@ def main() -> int:
     compile_one(ROOT / "src" / "csc3.c", csc3)
     print("building rirvm ...")
     compile_one(ROOT / "src" / "rirvm.c", rirvm)
+    print("building irc (C native backend) ...")
+    irc = BUILD / ("irc" + EXE)
+    compile_one(ROOT / "src" / "irc.c", irc)
     print("building py (legacy) ...")
     py = BUILD / ("py" + EXE)
     py_srcs = sorted(str(p) for p in (ROOT / "src" / "py").glob("*.c"))
@@ -82,8 +85,16 @@ def main() -> int:
         if r.returncode != 0 or missing:
             print(f"FAIL {name}: rirvm rc={r.returncode} missing={missing}\n{r.stdout}")
             failed += 1
+            continue
+        tos = BUILD / (name + ".tos")
+        if tos.exists():
+            tos.unlink()
+        r = run([str(irc), str(image), str(tos)])
+        if r.returncode != 0 or not tos.exists() or tos.read_bytes()[:6] != b"LZ4TOS":
+            print(f"FAIL {name}: irc rc={r.returncode}\n{r.stdout}")
+            failed += 1
         else:
-            print(f"PASS {name}")
+            print(f"PASS {name} (+native)")
 
     # Diagnostics must name the source line for both parse and codegen errors.
     for name in ("badline", "badvar"):
@@ -113,7 +124,15 @@ def main() -> int:
             print(f"FAIL sb3: rirvm rc={r.returncode}\n{r.stdout}")
             failed += 1
         else:
-            print("PASS sb3 (bounds)")
+            tos = BUILD / "sb3.tos"
+            if tos.exists():
+                tos.unlink()
+            r = run([str(irc), str(image), str(tos)])
+            if r.returncode != 0 or not tos.exists() or tos.read_bytes()[:6] != b"LZ4TOS":
+                print(f"FAIL sb3: irc rc={r.returncode}\n{r.stdout}")
+                failed += 1
+            else:
+                print("PASS sb3 (bounds, +native)")
 
     # Legacy Python interpreter, kept until the frontend is unified.
     r = run([str(py), str(ROOT / "tests" / "py" / "demo.py")])
