@@ -9,6 +9,7 @@ The TinyOS tree currently carries a pinned copy of this project:
 | `user/py/` (frozen) | `src/py/` |
 | `configs/esp32c3-csc3.conf` | not in this repo; TinyOS board config |
 | `internal/build/config.go` | `[features] csc3` gate |
+| `goc32/cmd/irc` | native RV32 backend; uses this repo's `src/csc3.c` output, but lives in TinyOS because it reuses goc32's assembler/linker/LZ4TOS |
 
 Pinned TinyOS state: code `5e5edd8`, acceptance `cb35e63`.
 

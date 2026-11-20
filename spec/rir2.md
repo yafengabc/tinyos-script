@@ -1,7 +1,8 @@
 # RIR2 image format
 
-RIR2 is the portable output of `csc3` and the input of `rirvm` (and, later,
-`irc`).  It is detected by magic, not by a filename extension.
+RIR2 is the portable output of `csc3` and the input of `rirvm` (and `irc`,
+the RV32 native backend in TinyOS `goc32/cmd/irc`).  It is detected by magic,
+not by a filename extension.
 
 All integers are little-endian int32.
 

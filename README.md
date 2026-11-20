@@ -92,7 +92,8 @@ invoke it; that copy is frozen.  Make changes here first, then update the pin.
 ## Roadmap
 
 1. Larger RIR2 interpreter profile (48 KiB window) for medium scripts.
-2. `irc`: RIR2 -> RV32 native ELF, with target register allocation and a small
-   built-in runtime; `rirvm` stays the differential-test oracle.
+2. `irc`: RIR2 -> RV32 native ELF; the first backend lives in TinyOS
+   `goc32/cmd/irc` and reuses goc32's assembler, ELF linker and LZ4TOS
+   packer.  `rirvm` stays the differential-test oracle.
 3. Unify the Python frontend onto AST + RIR2 (retire the separate bytecode VM).
 4. Optional XIP/paging if native code must exceed the window.
