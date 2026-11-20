@@ -12,10 +12,10 @@ CC = os.environ.get("CC", "gcc")
 EXE = ".exe" if os.name == "nt" else ""
 
 
-def compile_one(src: Path, out: Path) -> None:
+def compile_one(src: Path, out: Path, extra=()) -> None:
     subprocess.check_call([
         CC, "-std=gnu11", "-O2", "-I", str(ROOT / "include"),
-        str(src), "-o", str(out),
+        *extra, str(src), "-o", str(out),
     ])
 
 
@@ -34,7 +34,7 @@ def main() -> int:
     compile_one(ROOT / "src" / "rvm.c", rvm)
     print("building rcc (C native backend) ...")
     rcc = BUILD / ("rcc" + EXE)
-    compile_one(ROOT / "src" / "rcc.c", rcc)
+    compile_one(ROOT / "src" / "rcc" / "rcc.c", rcc, ["-DRCC_ARCH_RV32"])
     print("building py (legacy) ...")
     py = BUILD / ("py" + EXE)
     py_srcs = sorted(str(p) for p in (ROOT / "src" / "py").glob("*.c"))

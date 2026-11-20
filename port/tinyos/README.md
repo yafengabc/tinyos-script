@@ -6,11 +6,12 @@ The TinyOS tree currently carries a pinned copy of this project:
 |---|---|
 | `user/csc/csc.c` | `src/csc.c` |
 | `user/rvm/rvm.c` | `src/rvm.c` |
-| `user/rcc.c` | `src/rcc.c` |
+| `user/rcc/rcc.c` | `src/rcc/rcc.c` |
+| `user/rcc/rv32.inc` | `src/rcc/rv32.inc` |
 | `user/py/` (frozen) | `src/py/` |
 | `configs/esp32c3-rir.conf` | not in this repo; TinyOS board config |
 | `internal/build/config.go` | `[features] rir` gate |
-| `goc32/cmd/rcc` | Go reference for the native backend; the board-side C implementation is `src/rcc.c` |
+| `goc32/cmd/rcc` | Go reference for the native backend; the board-side C implementation is `src/rcc/rcc.c` |
 
 Pinned TinyOS state: code `66dc83d`, acceptance `8c44850`.
 
@@ -51,7 +52,8 @@ bytecode VM and run Python through the shared AST + RIR2 pipeline.
 ## Updating the pin
 
 1. Run `python tools/test.py` here.
-2. Copy `src/csc.c`, `src/rvm.c` and `src/rcc.c` into the TinyOS paths.
+2. Copy `src/csc.c`, `src/rvm.c`, `src/rcc/rcc.c` and `src/rcc/rv32.inc`
+   into the TinyOS paths.
 3. Build `configs/esp32c3-rir.conf`, flash COM4, and run the on-board
    compile/run check with `tosput-cli` (do not use msh `echo` for large
    sources: `MAX_ARGS 8`, `LINE_MAX 256`).

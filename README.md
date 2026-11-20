@@ -16,7 +16,7 @@ host.  The TinyOS tree carries only a pinned copy/port and the board config.
 ```text
 src/csc.c            AST -> RIR2 compiler (streaming, per function)
 src/rvm.c           portable RIR2 interpreter
-src/rcc.c             RIR2 -> RV32 ELF/LZ4TOS native backend (board-side C)
+src/rcc/            RIR2 -> native backend; rcc.c shared + rv32.inc
 src/py/               legacy Python interpreter (frozen reference)
 include/lib.h         host shim for the TinyOS user API (desktop only)
 spec/rir2.md          RIR2 file format, opcodes, natives
