@@ -8,6 +8,7 @@ The TinyOS tree currently carries a pinned copy of this project:
 | `user/rvm/rvm.c` | `src/rvm.c` |
 | `user/rcc/rcc.c` | `src/rcc/rcc.c` |
 | `user/rcc/rv32.inc` | `src/rcc/rv32.inc` |
+| `user/rcc/thumb2.inc` | `src/rcc/thumb2.inc` |
 | `user/py/` (frozen) | `src/py/` |
 | `configs/esp32c3-rir.conf` | not in this repo; TinyOS board config |
 | `internal/build/config.go` | `[features] rir` gate |
@@ -28,6 +29,11 @@ Pinned TinyOS state: code `8d15cbc`, acceptance `46c72c3`.
   Both can be extensionless.
 - `rcc` reads RIR2 and writes an RV32 ELF/LZ4TOS image.  The C version runs on
   the board (`user/rcc/rcc.c`); `goc32/cmd/rcc` is the host reference.
+  `src/rcc/rcc.c` is the shared driver and includes exactly one backend:
+  `rv32.inc` on RV32, `thumb2.inc` on ARM.  The Thumb-2 backend is stage 1
+  (integer core, calls, globals/arrays, print int, bounds); strings, floats and
+  the native syscalls still stop with a diagnostic.  `configs/arm-rir.conf` in
+  TinyOS is the test-only mps2 image that carries it.
 - `Copy-Item` keeps the source timestamp.  TinyOS rebuilds a user program only
   when its source is newer than the object, so a copy can silently leave a stale
   binary in the image (it happened with `csc`: the build kept the 32-function
