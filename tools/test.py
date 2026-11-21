@@ -81,6 +81,13 @@ def main() -> int:
         ("bigswitch", ["1836", "117", "result=0"]),
         ("bigbody", ["7432", "15", "result=0"]),
         ("mixbig", ["25", "97", "mixbig", "12", "134", "result=34"]),
+        # These four used to be native-only because the interpreter stopped at
+        # 256 instructions.  rvm now pages the image in, so it runs them too.
+        ("bigcode", ["12829"]),          # 31 functions, ~6 KiB source
+        ("many100", ["20009"]),          # 111 functions: the UFCS shape
+        ("bigir", ["1325"]),             # ~1.4k IR, board-compilable
+        ("hugeir", ["1536"]),            # ~3k IR: 12 pages, 2-slot board cache
+
     ]
 
     failed = 0
@@ -113,51 +120,6 @@ def main() -> int:
             failed += 1
         else:
             print(f"PASS {name} (+native)")
-
-    # Programs past the interpreter profile (rvm: 256 IR) still have to reach a
-    # native image.  They cannot be validated by rvm on the host, so the
-    # expected values come from a host C build and execution happens on the
-    # target (QEMU smoke / hardware).  Keep the split honest: if the image
-    # would fit rvm, it belongs in the table above instead.
-    native_only = [
-        ("bigcode", ["12829"]),          # 31 functions, ~6 KiB source
-        ("many100", ["20009"]),          # 111 functions: the UFCS shape
-        ("bigir", ["1325"]),             # ~1.4k IR, board-compilable
-        ("hugeir", ["1536"]),            # ~3k IR, host rcc only
-    ]
-    for name, needles in native_only:
-        src = ROOT / "tests" / (name + ".c")
-        image = BUILD / name
-        if image.exists():
-            image.unlink()
-        r = run([str(csc), str(src), str(image)])
-        if r.returncode != 0:
-            print(f"FAIL {name}: csc\n{r.stdout}")
-            failed += 1
-            continue
-        data = image.read_bytes() if image.exists() else b""
-        if data[:4] != b"RIR2":
-            print(f"FAIL {name}: output is not RIR2")
-            failed += 1
-            continue
-        ir = int.from_bytes(data[4:6], "little")
-        if ir <= 256:
-            print(f"FAIL {name}: ir={ir} fits rvm; move it to the main table")
-            failed += 1
-            continue
-        tos = BUILD / (name + ".tos")
-        if tos.exists():
-            tos.unlink()
-        r = run([str(rcc), str(image), str(tos)])
-        if r.returncode != 0 or not tos.exists() or tos.read_bytes()[:6] != b"LZ4TOS":
-            print(f"FAIL {name}: rcc rc={r.returncode}\n{r.stdout}")
-            failed += 1
-        else:
-            text = ""
-            for line in r.stdout.splitlines():
-                if line.startswith("rcc: "):
-                    text = line.split()[1]
-            print(f"PASS {name} (native-only, ir={ir}, text={text})")
 
     # Target-only features: csc and rcc must produce an image, but the host
     # rvm has no child processes or TinyOS filesystem, so execution is checked

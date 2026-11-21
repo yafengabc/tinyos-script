@@ -105,6 +105,7 @@ in TinyOS as a comparison baseline.
 
 ## Testing
 
-`python tools/test.py` builds `csc`, compiles every program in `tests/` and
-checks the `rvm` output.  Native-only programs (more than 256 IR) are listed
-separately in the same runner and only have to produce an `LZ4TOS` image.
+`python tools/test.py` builds `csc`, compiles every program in `tests/`, and
+checks the `rvm` output before building the native image.  `rvm` pages the
+instruction array in, so even the ~3k-instruction cases are interpreted; only
+the programs that need a TinyOS filesystem or child processes are target-only.

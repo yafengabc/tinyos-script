@@ -30,17 +30,28 @@ the program's own output, so tests that compare both sides strip this line.
 
 | Resource | Limit |
 |---|---:|
-| Instructions (whole program) | 256 |
+| Instructions (whole program) | paged from the image; header cap 65,536 |
 | Global words | 512 |
 | String pool | 1024 B |
 | Mutable arena | 512 B |
 | Functions | 256 |
 
-`rvm` rejects an image outside these bounds (`rvm: bad or missing image`)
-instead of running it partially.  The 256-instruction ceiling is deliberate:
-the interpreter is a size-conscious reference, not the target for large
-programs.  Anything bigger is verified with `rcc` on QEMU or hardware; the host
-runner marks those tests `native-only`.
+The instruction array is **not** held in RAM.  `rvm` keeps a small page cache
+(`PAGE_IR` = 256 instructions, one 5120-byte read per fault; 8 slots on the
+host, 2 on the board) and maps the page holding `pc`.  A page range check costs
+two subtractions and one compare per instruction, which is why `benchloop`
+reads about 15-30% slower than the old whole-image build; everything else is
+unchanged.
+
+This replaced a hard 256-instruction ceiling, so the four programs that used to
+be `native-only` (`bigcode` 535 IR, `many100` 898, `bigir` 1436, `hugeir` 2948)
+are now checked by `rvm` as well as `rcc` in `tools/test.py`.  The two board
+slots mean a program larger than 512 instructions can still run, it just refills
+pages on jumps between distant functions.
+
+Other limits are enforced at load time: the header must fit the file
+(`rvm: bad or missing image`), and a `pc` outside `[0, nir)` stops the run with
+`rvm: pc out of range` instead of reading memory that is not there.
 
 ## Execution model
 
@@ -59,4 +70,5 @@ usage error.
 `rvm` is the golden model for `csc` and for the native backends: for every
 interpreter-compatible program the ARM/RV32 image must print the same lines
 (minus the summary).  `tools/test.py` checks `rvm` first and only then builds
-the native image.
+the native image; programs that need a TinyOS filesystem or child processes
+(`capture`, file IO, `readdir`) are the only ones left to the target.
