@@ -103,7 +103,7 @@ index in a register; `BOUNDS` is emitted first by the compiler.
 4  adc_count      5  adc_read       6  pwm_count     7  pwm_set
 8  pwm_off        9  sleep          10 uptime        11 run(path)
 12 open(path)    13 create(path)  14 read(fd,buf,len)  15 write(fd,buf,len)
-16 close(fd)     17 unlink(path)  18 capture(path,buf,cap)
+16 close(fd)     17 unlink(path)  18 capture(path,buf,cap)  19 readdir(idx,buf,len)  20 isdir(path)
 ```
 
 `run(path)` spawns the named program, waits for it, and returns its exit code

@@ -166,6 +166,7 @@ def main() -> int:
         ("exec1", ["hello from ring 3!", "0"]),
         ("file1", ["1", "5", "0", "5", "hello"]),
         ("capture1", ["hello from ring 3!", "pid="]),
+        ("dir1", ["readme.txt", "bin", "-1"]),
     ]
     for name, needles in target_only:
         src = ROOT / "tests" / (name + ".c")
