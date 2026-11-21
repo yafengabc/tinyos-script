@@ -9,6 +9,7 @@ The TinyOS tree currently carries a pinned copy of this project:
 | `user/rcc/rcc.c` | `src/rcc/rcc.c` |
 | `user/rcc/rv32.inc` | `src/rcc/rv32.inc` |
 | `user/rcc/thumb2.inc` | `src/rcc/thumb2.inc` |
+| `user/rcc/thumb1.inc` | `src/rcc/thumb1.inc` |
 | `user/py/` (frozen) | `src/py/` |
 | `configs/esp32c3-rir.conf` | not in this repo; TinyOS board config |
 | `internal/build/config.go` | `[features] rir` gate |
