@@ -87,6 +87,7 @@ Besides string builtins (`strlen`, `strcmp`, `strlcpy`, `strlcat`, `atoi`,
 | `open(path)`, `create(path)` | 1 string | fd or -1 |
 | `read(fd, buf, len)`, `write(fd, buf, len)` | int, string, int | bytes or -1 |
 | `close(fd)`, `unlink(path)` | 1 | 0 or -1 |
+| `capture(path, buf, cap)` | string, string, int | bytes captured |
 
 `run()` spawns the program and waits; it does not replace the caller.  File paths and buffers are arena offsets; `read`/`write` move bytes through the 512-byte mutable arena.  The
 argument is checked to be a string (`csc` rejects `run(42)`).  The host `rvm`
