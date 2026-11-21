@@ -1,4 +1,4 @@
-﻿# rcc 鈥?RIR2 to native ELF
+﻿# rcc — RIR2 to native ELF
 
 `rcc` turns a RIR2 image into a TinyOS-loadable native program:
 
@@ -117,7 +117,15 @@ register allocator's spill slots, starting after the nine RIR slots.
 | Labels | 16384 | 4096 |
 | Text | 256 KiB | 48 KiB |
 | Functions | 1024 | 256 |
-| Window (ESP32-C3 / rv32) | 鈥?| 120 KiB |
+| Window (ESP32-C3 / rv32) | — | 88 KiB |
+
+The RIR2 input is **not** held in memory: the instruction array is read
+through a 4 KiB sliding block, and the function table, string pool (1 KiB) and
+arena (512 B) are each copied once.  `RIR_MAX` stays as an input size check, so
+the accepted images are the same as before; only the buffer is gone.  On the
+board that moved `rcc`'s BSS from 71.9 KiB to 37.6 KiB and the window from
+124 KiB to 88 KiB, for about 2% more compile time on the host (nine extra
+`read()` calls per pass on a 40 KiB image).
 
 Capacity note: labels cost about 1.45 per IR instruction because `%` and
 `/` need sign fixups.  A program over a limit stops with a named diagnostic
@@ -146,7 +154,7 @@ QEMU: stage the `.tos` under `files.local/bin/` in TinyOS, build with
 `configs/rv32-rir.conf` or `configs/arm-rir.conf`, and run the programs through
 `tostest smoke`.  The native output must equal `rvm`'s output for the same
 image, minus the summary line.  The full procedure, including the 512 KiB
-ramdisk batching rule, is in TinyOS `docs/TESTING.md` 搂4.4鈥?.5.
+ramdisk batching rule, is in TinyOS `docs/TESTING.md` 搂4.4/4.5.
 
 ## Port
 
