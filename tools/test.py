@@ -164,6 +164,7 @@ def main() -> int:
     # on QEMU (or a board) with the same needles.
     target_only = [
         ("exec1", ["hello from ring 3!", "0"]),
+        ("file1", ["1", "5", "0", "5", "hello"]),
     ]
     for name, needles in target_only:
         src = ROOT / "tests" / (name + ".c")

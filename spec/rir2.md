@@ -68,7 +68,7 @@ NATIVE NATIVER LOADD STORED
 SHLI SHRI FMUL FDIV PRINTFIX PRINTFIXV
 BOUNDS PRINTFIXN MOD
 LOADB STOREB STRCPY STRCAT STRLEN STRCMP ATOI PRINTSTR
-NE LE GE
+NE LE GE NATIVEC
 ```
 
 Field conventions worth noting:
@@ -102,6 +102,8 @@ index in a register; `BOUNDS` is emitted first by the compiler.
 0  gpio_count     1  gpio_mode      2  gpio_write    3  gpio_read
 4  adc_count      5  adc_read       6  pwm_count     7  pwm_set
 8  pwm_off        9  sleep          10 uptime        11 run(path)
+12 open(path)    13 create(path)  14 read(fd,buf,len)  15 write(fd,buf,len)
+16 close(fd)     17 unlink(path)
 ```
 
 `run(path)` spawns the named program, waits for it, and returns its exit code

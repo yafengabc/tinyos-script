@@ -84,8 +84,11 @@ Besides string builtins (`strlen`, `strcmp`, `strlcpy`, `strlcat`, `atoi`,
 | `adc_count/read`, `pwm_count/set/off` | 0-3 | some |
 | `sleep`, `uptime` | 0-1 | some |
 | `run(path)` | 1 string | child exit code |
+| `open(path)`, `create(path)` | 1 string | fd or -1 |
+| `read(fd, buf, len)`, `write(fd, buf, len)` | int, string, int | bytes or -1 |
+| `close(fd)`, `unlink(path)` | 1 | 0 or -1 |
 
-`run()` spawns the program and waits; it does not replace the caller.  The
+`run()` spawns the program and waits; it does not replace the caller.  File paths and buffers are arena offsets; `read`/`write` move bytes through the 512-byte mutable arena.  The
 argument is checked to be a string (`csc` rejects `run(42)`).  The host `rvm`
 returns -1 because it has no child processes; QEMU/boards exercise it.
 
