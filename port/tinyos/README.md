@@ -14,7 +14,7 @@ The TinyOS tree currently carries a pinned copy of this project:
 | `internal/build/config.go` | `[features] rir` gate |
 | `goc32/cmd/rcc` | Go reference for the native backend; the board-side C implementation is `src/rcc/rcc.c` |
 
-Pinned TinyOS state: code `f79e716`, acceptance `f79e716`.
+Pinned TinyOS state: code `7a25c54`, acceptance `7a25c54`.
 
 ## Integration rules
 
