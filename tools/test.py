@@ -75,6 +75,7 @@ def main() -> int:
         ("globals2", ["6", "7", "15", "ok", "result=7"]),
         ("spill", ["66", "395", "result=0"]),
         ("divzero", ["-2147483648", "0", "0", "0"]),
+        ("bom", ["42"]),
         ("deep", ["325", "result=55"]),
         ("mixed", ["n=7", "2.0", "ok", "result=4"]),
         ("many25", ["120", "result=0"]),
@@ -152,17 +153,18 @@ def main() -> int:
             print(f"PASS {name} (target-only: {'; '.join(needles)})")
 
     # Diagnostics must name the source line for both parse and codegen errors.
-    for name in ("badline", "badvar"):
+    for name in ("badline", "badvar", "badprintf"):
         src = ROOT / "tests" / (name + ".c")
         image = BUILD / name
         if image.exists():
             image.unlink()
         r = run([str(csc), str(src), str(image)])
-        if r.returncode == 0 or "line 3" not in r.stdout:
+        line = "line 1" if name == "badprintf" else "line 3"
+        if r.returncode == 0 or line not in r.stdout:
             print(f"FAIL {name}: rc={r.returncode}\n{r.stdout}")
             failed += 1
         else:
-            print(f"PASS {name} (line 3)")
+            print(f"PASS {name} ({line})")
 
     # Too many spill slots: the compiler must diagnose it instead of
     # emitting an RIR the interpreter silently mis-executes (issue #1).
