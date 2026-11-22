@@ -166,18 +166,27 @@ def main() -> int:
         else:
             print(f"PASS {name} ({line})")
 
-    # Too many spill slots: the compiler must diagnose it instead of
-    # emitting an RIR the interpreter silently mis-executes (issue #1).
+    # More spill slots than rvm can hold: csc must still compile the image
+    # (rcc sizes its frame dynamically), and rvm must fail loudly rather than
+    # silently returning a wrong result (issue #1).
     src = ROOT / "tests" / "spillover.c"
     image = BUILD / "spillover"
     if image.exists():
         image.unlink()
     r = run([str(csc), str(src), str(image)])
-    if r.returncode == 0 or "spill slots exceed 16" not in r.stdout:
-        print(f"FAIL spillover: rc={r.returncode}\n{r.stdout}")
+    if r.returncode != 0:
+        print(f"FAIL spillover csc: rc={r.returncode}\n{r.stdout}")
         failed += 1
     else:
-        print("PASS spillover (spill slots exceed 16)")
+        r = run([str(rvm), str(image)])
+        if r.returncode == 0 or "spill" not in r.stdout:
+            print(f"FAIL spillover rvm: rc={r.returncode}\n{r.stdout}")
+            failed += 1
+        elif run([str(rcc), str(image), str(BUILD / "spillover.tos")]).returncode != 0:
+            print("FAIL spillover rcc")
+            failed += 1
+        else:
+            print("PASS spillover (rvm rejects, csc -> rcc succeeds)")
 
     # Out-of-bounds must be diagnosed by the image's BOUNDS op, not a crash.
     src = ROOT / "tests" / "sb3.c"
