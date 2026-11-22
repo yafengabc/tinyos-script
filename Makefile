@@ -20,6 +20,7 @@ $(BUILD)/rcc: src/rcc/rcc.c src/rcc/rv32.inc include/lib.h | $(BUILD)
 
 test: all
 	python tools/test.py
+	python tools/check_docs.py
 
 clean:
 	rm -rf $(BUILD)

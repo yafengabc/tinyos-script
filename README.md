@@ -66,7 +66,7 @@ builds the legacy `py` interpreter and checks `tests/py/demo.py` (`sum: 13`,
   propagation, dead pure definitions, and NOP compaction with branch remap.
 - `tests/benchfib.c` / `tests/benchloop.c` are manual on-board speed
   benchmarks (uptime-based), not part of the golden runner.
-- `src/rcc.c` compiles RIR2 to a TinyOS-loadable RV32 ELF and a stored-LZ4TOS
+- `src/rcc/rcc.c` compiles RIR2 to a TinyOS-loadable RV32 ELF and a stored-LZ4TOS
   envelope.  It runs on the board (`user/rcc.c`) and on the host; every golden
   test is also assembled natively by `tools/test.py`.
 - Strings: `char[]` byte arrays and `string` variables in a 512-byte mutable
@@ -116,7 +116,7 @@ invoke it; that copy is frozen.  Make changes here first, then update the pin.
 
 1. Larger RIR2 interpreter profile (48 KiB window) for medium scripts.
 2. `rcc`: RIR2 -> RV32 native ELF.  The board-side C implementation is
-   `src/rcc.c`; the earlier Go reference remains in TinyOS `goc32/cmd/rcc`.
+   `src/rcc/rcc.c`; the C backend covers RV32, Thumb-2 and Thumb-1.
    `rvm` stays the differential-test oracle.
 3. Unify the Python frontend onto AST + RIR2 (retire the separate bytecode VM).
 4. Optional XIP/paging if native code must exceed the window.

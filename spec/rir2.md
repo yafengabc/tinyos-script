@@ -43,7 +43,7 @@ restores it at the start of every repetition.
 `NATIVEC a=<native id> d=<destination vreg>`: arguments are written into the
 shared `ARG` buffer by preceding `ARG` instructions (up to 3 words); the
 return value is placed in the destination vreg (`-1` when the native has no
-return value).  Native ids are defined in `include/native.h` and must stay in
+return value).  Native ids are defined by the `NAT_*` enum in `src/csc.c` and mirrored in `src/rvm.c` and `src/rcc/rcc.c`; they must stay in
 sync between `csc`, `rvm` and all `rcc` backends.
 
 ## Execution model

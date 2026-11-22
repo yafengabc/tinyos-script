@@ -6,6 +6,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from check_tos import check
+
 ROOT = Path(__file__).resolve().parents[1]
 BUILD = ROOT / "build"
 CC = os.environ.get("CC", "gcc")
@@ -117,11 +119,12 @@ def main() -> int:
         if tos.exists():
             tos.unlink()
         r = run([str(rcc), str(image), str(tos)])
-        if r.returncode != 0 or not tos.exists() or tos.read_bytes()[:6] != b"LZ4TOS":
-            print(f"FAIL {name}: rcc rc={r.returncode}\n{r.stdout}")
+        errors = check(tos, "rv32") if tos.exists() else ["no output"]
+        if r.returncode != 0 or errors:
+            print(f"FAIL {name}: rcc rc={r.returncode} {errors}\n{r.stdout}")
             failed += 1
         else:
-            print(f"PASS {name} (+native)")
+            print(f"PASS {name} (+native, ELF OK)")
 
     # Target-only features: csc and rcc must produce an image, but the host
     # rvm has no child processes or TinyOS filesystem, so execution is checked
@@ -248,6 +251,28 @@ def main() -> int:
             failed += 1
         else:
             print(f"PASS bigout ({big_tos.stat().st_size} bytes, stack-protected rcc)")
+
+    # A Thumb-2 rcc must at least produce a structurally valid EM_ARM image.
+    # Executing ARM code on this host is impossible, so this is a build +
+    # ELF-header check (issue #8: "not ARM" coverage).
+    rcc_arm = BUILD / ("rcc-arm" + EXE)
+    compile_one(ROOT / "src" / "rcc" / "rcc.c", rcc_arm,
+                ["-DRCC_ARCH_THUMB2"])
+    arm_rir = BUILD / "arith"
+    arm_tos = BUILD / "arith-arm.tos"
+    if not arm_rir.exists():
+        r = run([str(csc), str(ROOT / "tests" / "arith.c"), str(arm_rir)])
+        if r.returncode != 0:
+            print(f"FAIL arith csc for ARM: {r.stdout}")
+            failed += 1
+    if arm_rir.exists():
+        r = run([str(rcc_arm), str(arm_rir), str(arm_tos)])
+        errors = check(arm_tos, "arm") if arm_tos.exists() else ["no output"]
+        if r.returncode != 0 or errors:
+            print(f"FAIL arith ARM rcc: rc={r.returncode} {errors}\n{r.stdout}")
+            failed += 1
+        else:
+            print("PASS arith ARM rcc (EM_ARM, ELF OK)")
 
     print("ALL TESTS PASS" if failed == 0 else f"{failed} TEST(S) FAILED")
     return 0 if failed == 0 else 1

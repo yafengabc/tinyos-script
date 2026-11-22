@@ -13,7 +13,6 @@ The TinyOS tree currently carries a pinned copy of this project:
 | `user/py/` (frozen) | `src/py/` |
 | `configs/esp32c3-rir.conf` | not in this repo; TinyOS board config |
 | `internal/build/config.go` | `[features] rir` gate |
-| `goc32/cmd/rcc` | Go reference for the native backend; the board-side C implementation is `src/rcc/rcc.c` |
 
 Pinned TinyOS state: code `451fa4d`, acceptance `451fa4d`.
 
