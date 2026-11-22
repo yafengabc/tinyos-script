@@ -42,7 +42,10 @@ int host_stat(const char *path, struct stat *st);
 #define lseek(fd,o,w)  _lseek((fd), (o), (w))
 #define close(fd)      _close(fd)
 #else
-/* POSIX open/read/write/lseek/close already match the TinyOS user API. */
+/* POSIX open() takes flags, but the TinyOS user API calls open(path).  The
+ * inner open is not re-expanded (the preprocessor suppresses recursion), so
+ * this forwards to the real function with O_RDONLY. */
+#define open(p)        open((p), O_RDONLY)
 #define create(p)      open((p), O_CREAT | O_TRUNC | O_WRONLY, 0644)
 #endif
 
