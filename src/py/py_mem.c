@@ -53,7 +53,7 @@ static char *arena_end;
  * meant to share this region - see the comment above process_sbrk(). */
 #define PY_ARENA_CHUNK 4096u
 
-extern void *sbrk(int bytes);
+extern void *sbrk(intptr_t bytes);
 
 static int grow_arena(uint32_t bytes)
 {

@@ -21,7 +21,7 @@
 #define TOS_STACK(bytes)
 #define TOS_HEAP(bytes)
 #define sbrk(n) host_sbrk(n)
-void *host_sbrk(int bytes);
+void *host_sbrk(intptr_t bytes);
 
 /* Minimal TinyOS stat(): py only checks regular file and size. */
 #define TOS_FTYPE_REG 0

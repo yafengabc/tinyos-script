@@ -11,7 +11,7 @@
 #define ARRAY_LEN(a) (sizeof(a) / sizeof((a)[0]))
 
 /* The target's lib.h provides sbrk(); the host shim routes it to one arena. */
-void *host_sbrk(int bytes);
+void *host_sbrk(intptr_t bytes);
 #define sbrk(n) host_sbrk(n)
 
 #endif /* TINYOS_SCRIPT_HOST_TYPES_H */

@@ -5,7 +5,7 @@
 static unsigned char host_heap[2 * 1024 * 1024];
 static size_t host_brk;
 
-void *host_sbrk(int bytes)
+void *host_sbrk(intptr_t bytes)
 {
     size_t need;
     void *p;
