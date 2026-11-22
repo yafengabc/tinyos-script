@@ -60,7 +60,10 @@ Other limits are enforced at load time: the header must fit the file
 - Strings are arena offsets; a bounds violation prints `bounds` and exits 1.
 - Native ids (GPIO/ADC/PWM/sleep/uptime) return 0 on the host; they exist so the
   same image links and runs — behaviour lives in `rcc`/TinyOS.
-- Divide by zero in `%` yields 0; division follows C truncation.
+- Divide by zero in both `/` and `%` yields 0; division follows C truncation.
+  `INT_MIN / -1` yields `INT_MIN` and `INT_MIN % -1` yields 0, matching the
+  RV32/Thumb-2 divide instructions and avoiding a host integer-overflow trap.
+  `csc` applies the same rules when folding constants.
 
 Exit status is 0 on success, 1 for a load error or a bounds failure, 2 for a
 usage error.

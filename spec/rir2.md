@@ -42,7 +42,9 @@ restores it at the start of every repetition.
 
 - One frame per call, 32 frames; frame 0 is main.
 - 16 registers per frame; r13–r15 are spill scratch during execution of
-  rewritten code.
+  rewritten code.  A function uses at most **16 spill slots**: `csc` diagnoses
+  `spill slots exceed 16` instead of emitting an RIR the interpreter would
+  silently mis-execute, and `rvm` rejects an out-of-range slot.
 - Arguments are staged by `ARG` and copied into the callee's r0.. by `CALL`.
 - A struct-returning function receives one hidden extra argument after its
   declared parameters: the destination word base.  It copies the result there

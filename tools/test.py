@@ -74,6 +74,7 @@ def main() -> int:
         ("arrays2", ["30", "4", "13", "result=16"]),
         ("globals2", ["6", "7", "15", "ok", "result=7"]),
         ("spill", ["66", "395", "result=0"]),
+        ("divzero", ["-2147483648", "0", "0", "0"]),
         ("deep", ["325", "result=55"]),
         ("mixed", ["n=7", "2.0", "ok", "result=4"]),
         ("many25", ["120", "result=0"]),
@@ -162,6 +163,19 @@ def main() -> int:
             failed += 1
         else:
             print(f"PASS {name} (line 3)")
+
+    # Too many spill slots: the compiler must diagnose it instead of
+    # emitting an RIR the interpreter silently mis-executes (issue #1).
+    src = ROOT / "tests" / "spillover.c"
+    image = BUILD / "spillover"
+    if image.exists():
+        image.unlink()
+    r = run([str(csc), str(src), str(image)])
+    if r.returncode == 0 or "spill slots exceed 16" not in r.stdout:
+        print(f"FAIL spillover: rc={r.returncode}\n{r.stdout}")
+        failed += 1
+    else:
+        print("PASS spillover (spill slots exceed 16)")
 
     # Out-of-bounds must be diagnosed by the image's BOUNDS op, not a crash.
     src = ROOT / "tests" / "sb3.c"
