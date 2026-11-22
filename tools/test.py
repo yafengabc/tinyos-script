@@ -191,6 +191,33 @@ def main() -> int:
         else:
             print("PASS spillover (rvm rejects, csc -> rcc succeeds)")
 
+    # An image that overflows rvm's memory window is still valid RIR2: csc and
+    # rcc must accept it, and rvm must name the limit instead of running it.
+    src = ROOT / "tests" / "bigarray.c"
+    image = BUILD / "bigarray"
+    if image.exists():
+        image.unlink()
+    r = run([str(csc), str(src), str(image)])
+    if r.returncode != 0:
+        print(f"FAIL bigarray csc: rc={r.returncode}\n{r.stdout}")
+        failed += 1
+    else:
+        r = run([str(rvm), str(image)])
+        if r.returncode == 0 or "use csc -> rcc" not in r.stdout:
+            print(f"FAIL bigarray rvm: rc={r.returncode}\n{r.stdout}")
+            failed += 1
+        else:
+            tos = BUILD / "bigarray.tos"
+            if tos.exists():
+                tos.unlink()
+            r = run([str(rcc), str(image), str(tos)])
+            errors = check(tos, "rv32") if tos.exists() else ["no output"]
+            if r.returncode != 0 or errors:
+                print(f"FAIL bigarray rcc: rc={r.returncode} {errors}\n{r.stdout}")
+                failed += 1
+            else:
+                print("PASS bigarray (rvm limit, csc -> rcc OK)")
+
     # Out-of-bounds must be diagnosed by the image's BOUNDS op, not a crash.
     src = ROOT / "tests" / "sb3.c"
     image = BUILD / "sb3"

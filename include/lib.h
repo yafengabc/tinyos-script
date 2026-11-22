@@ -10,9 +10,13 @@
 #include <stdint.h>
 #include <string.h>
 #include <ctype.h>
-#include <io.h>
 #include <fcntl.h>
 #include <time.h>
+#if defined(_WIN32)
+#include <io.h>
+#else
+#include <unistd.h>
+#endif
 
 #define TOS_STACK(bytes)
 #define TOS_HEAP(bytes)
@@ -30,12 +34,17 @@ struct stat {
 int host_stat(const char *path, struct stat *st);
 #define stat(p, st) host_stat((p), (st))
 
+#if defined(_WIN32)
 #define open(p)        _open((p), _O_RDONLY | _O_BINARY)
 #define create(p)      _open((p), _O_CREAT | _O_TRUNC | _O_WRONLY | _O_BINARY, 0644)
 #define read(fd,b,n)   _read((fd), (b), (n))
 #define write(fd,b,n)  _write((fd), (b), (n))
 #define lseek(fd,o,w)  _lseek((fd), (o), (w))
 #define close(fd)      _close(fd)
+#else
+/* POSIX open/read/write/lseek/close already match the TinyOS user API. */
+#define create(p)      open((p), O_CREAT | O_TRUNC | O_WRONLY, 0644)
+#endif
 
 /* TinyOS puts() writes bytes only; stdio puts() appends a newline. */
 #define puts(s)        fputs((s), stdout)
@@ -72,7 +81,7 @@ static inline int write_all(int fd, const void *buf, int len)
 {
     int done = 0;
     while (done < len) {
-        int n = _write(fd, (const char *)buf + done, len - done);
+        int n = write(fd, (const char *)buf + done, len - done);
         if (n <= 0)
             return -1;
         done += n;

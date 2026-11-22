@@ -151,12 +151,15 @@ gcc -std=gnu11 -O2 -I include -DRCC_ARCH_THUMB1 src/rcc/rcc.c -o build/rcc-m0
 ```
 
 `tools/test.py` builds the host `rcc` and runs every golden case twice:
-once through `rvm` and once as native code (`PASS name (+native)`), comparing
-the program output line by line.  It does **not** perform ELF structural
-validation (`EM_RISCV`/`EM_ARM`, `ET_DYN`, `PT_LOAD`, `e_entry`): for that,
-inspect the generated ELF in TinyOS with `scripts/elfwin.py` (which also
-derives the `exec()` window from the PT_NOTE stack hint).  Board-side
-verification stages the `.tos` under `files.local/bin/` in TinyOS, builds with
+once through `rvm` and once as native code (`PASS name (+native, ELF OK)`).
+It matches the expected output substrings from both sides, then validates the
+`.tos` envelope with `tools/check_tos.py`: the LZ4TOS header, the stored-LZ4
+literal length, and an ELF32 `ET_DYN` with the expected `e_machine`,
+`e_entry = 0` and at least one `PT_LOAD`.  The Thumb-2 case stops at build +
+ELF header validation because the host cannot execute ARM code.  Deeper
+inspection (program headers, and the `exec()` window derived from the PT_NOTE
+stack hint) uses TinyOS `scripts/elfwin.py`.  Board-side verification stages
+the `.tos` under `files.local/bin/` in TinyOS, builds with
 `configs/rv32-rir.conf` or `configs/arm-rir.conf`, and runs `tostest smoke`.
 The native output must equal `rvm`'s output for the same image, minus the
 summary line.  See TinyOS `docs/TESTING.md` §4.4/4.5 for the full procedure.

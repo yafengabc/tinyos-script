@@ -35,6 +35,8 @@ the program's own output, so tests that compare both sides strip this line.
 | String pool | 1024 B |
 | Mutable arena | 512 B |
 | Functions | 256 |
+| Spill slots per frame | 16 |
+| Call frames | 32 |
 
 The instruction array is **not** held in RAM.  `rvm` keeps a small page cache
 (`PAGE_IR` = 256 instructions, one 5120-byte read per fault; 8 slots on the
@@ -49,9 +51,21 @@ are now checked by `rvm` as well as `rcc` in `tools/test.py`.  The two board
 slots mean a program larger than 512 instructions can still run, it just refills
 pages on jumps between distant functions.
 
-Other limits are enforced at load time: the header must fit the file
-(`rvm: bad or missing image`), and a `pc` outside `[0, nir)` stops the run with
-`rvm: pc out of range` instead of reading memory that is not there.
+Other limits are enforced at load time: the header must fit the file, and a
+`pc` outside `[0, nir)` stops the run with `rvm: pc out of range` instead of
+reading memory that is not there.  A truncated image or a bad header stops with
+`rvm: bad or missing image`.
+
+An image that exceeds one of the table's windows is still valid RIR2 — `rcc`
+builds it with no such limit — so `rvm` names the limit that was hit and points
+at the native path:
+
+```text
+rvm: global words 600 exceeds rvm limit 512; use csc -> rcc
+```
+
+Programs that need more than rvm's window therefore go through `csc -> rcc`;
+the interpreter is only for the small programs it can hold in memory.
 
 ## Execution model
 

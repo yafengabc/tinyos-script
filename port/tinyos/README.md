@@ -54,8 +54,9 @@ Pinned TinyOS state: code `451fa4d`, acceptance `451fa4d`.
 | `rvm` | ~4.7 KiB | 32 KiB |
 | `rcc` | ~18.1 KiB | 72 KiB |
 
-`rvm` limits: 256 IR, 512 global words, 1 KiB strings, 512 arena bytes,
-32 frames.
+`rvm` limits: 512 global words, 1 KiB strings, 512 arena bytes, 16 spill
+slots, 32 frames; instructions are paged from the image (header cap 65,536).
+Larger programs use `csc -> rcc`.
 
 ## Legacy `py`
 

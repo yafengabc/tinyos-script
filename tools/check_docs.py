@@ -17,6 +17,8 @@ STALE = (
     ("goc32/cmd/rcc", "use src/rcc/rcc.c"),
     ("spill not implemented", "spill slots exist"),
     ("still stop with a diagnostic", "the backends now cover these"),
+    ("does **not** perform ELF structural", "check_tos.py validates the ELF"),
+    ("256 IR", "instructions are paged; the header cap is 65,536"),
 )
 
 

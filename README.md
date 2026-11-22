@@ -72,9 +72,9 @@ builds the legacy `py` interpreter and checks `tests/py/demo.py` (`sum: 13`,
 - Strings: `char[]` byte arrays and `string` variables in a 512-byte mutable
   arena, with `strlen`, `strcmp`, `strlcpy`, `strlcat`, `atoi`, `print` and
   `printf("%s")`.  String parameters and string returns are supported.
-- `rvm` is intentionally small: 256 IR, 512 global words, 1 KiB strings,
-  512 arena bytes, 32 frames.  Larger programs are the job of `rcc` or the
-  future larger interpreter profile.
+- `rvm` is intentionally small: 512 global words, 1 KiB strings, 512 arena
+  bytes, 16 spill slots and 32 frames; instructions are paged in from the
+  image (header cap 65,536).  Programs beyond those windows go through `rcc`.
 - Final TinyOS toolchain is `csc` + `rvm` + `rcc`; `csa` + `pvm` stay in
   TinyOS temporarily as the comparison baseline.
 
