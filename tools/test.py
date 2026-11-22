@@ -153,13 +153,13 @@ def main() -> int:
             print(f"PASS {name} (target-only: {'; '.join(needles)})")
 
     # Diagnostics must name the source line for both parse and codegen errors.
-    for name in ("badline", "badvar", "badprintf"):
+    for name in ("badline", "badvar", "badprintf", "badshadow"):
         src = ROOT / "tests" / (name + ".c")
         image = BUILD / name
         if image.exists():
             image.unlink()
         r = run([str(csc), str(src), str(image)])
-        line = "line 1" if name == "badprintf" else "line 3"
+        line = {"badprintf": "line 1", "badshadow": "line 4"}.get(name, "line 3")
         if r.returncode == 0 or line not in r.stdout:
             print(f"FAIL {name}: rc={r.returncode}\n{r.stdout}")
             failed += 1
