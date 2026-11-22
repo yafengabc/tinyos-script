@@ -1,7 +1,7 @@
 # RIR2 image format
 
 RIR2 is the portable output of `csc` and the input of `rvm` (and `rcc`,
-the RV32 native backend in TinyOS `goc32/cmd/rcc`).  It is detected by magic,
+the RV32 native backend in `src/rcc/rcc.c`).  It is detected by magic,
 not by a filename extension.
 
 All integers are little-endian int32.
@@ -37,6 +37,14 @@ function table.
 formats.  `dsize` bytes are a writable arena holding `char[]` storage and the
 copies of string literals used as values.  The VM keeps this initial image and
 restores it at the start of every repetition.
+
+## NATIVEC
+
+`NATIVEC a=<native id> d=<destination vreg>`: arguments are written into the
+shared `ARG` buffer by preceding `ARG` instructions (up to 3 words); the
+return value is placed in the destination vreg (`-1` when the native has no
+return value).  Native ids are defined in `include/native.h` and must stay in
+sync between `csc`, `rvm` and all `rcc` backends.
 
 ## Execution model
 

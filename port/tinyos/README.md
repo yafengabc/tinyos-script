@@ -28,13 +28,14 @@ Pinned TinyOS state: code `451fa4d`, acceptance `451fa4d`.
   filename suffixes in the shell, compiler or VM.
 - `csc` needs a source file and an output path; `rvm` needs only the image.
   Both can be extensionless.
-- `rcc` reads RIR2 and writes an RV32 ELF/LZ4TOS image.  The C version runs on
-  the board (`user/rcc/rcc.c`); `goc32/cmd/rcc` is the host reference.
-  `src/rcc/rcc.c` is the shared driver and includes exactly one backend:
-  `rv32.inc` on RV32, `thumb2.inc` on ARM.  The Thumb-2 backend is stage 1
-  (integer core, calls, globals/arrays, print int, bounds); strings, floats and
-  the native syscalls still stop with a diagnostic.  `configs/arm-rir.conf` in
-  TinyOS is the test-only mps2 image that carries it.
+- `rcc` reads RIR2 and writes an ELF/LZ4TOS image.  The driver is
+  `src/rcc/rcc.c` (pinned into TinyOS as `user/rcc/rcc.c`) and includes
+  exactly one backend, selected by `-DRCC_ARCH_*`: `rv32.inc` for RV32,
+  `thumb2.inc` for ARMv7/ARMv8-M (M33), and `thumb1.inc` for ARMv6-M (M0+,
+  RP2040).  All three cover the full RIR2 core including strings and native
+  calls; the 44-program corpus runs on both RP2350 halves.  TinyOS
+  `configs/arm-rir.conf` and `configs/rpi-pico2-rir.conf` are the images
+  that carry the backends on board.
 - `Copy-Item` keeps the source timestamp.  TinyOS rebuilds a user program only
   when its source is newer than the object, so a copy can silently leave a stale
   binary in the image (it happened with `csc`: the build kept the 32-function

@@ -146,15 +146,20 @@ Host build (output can be inspected without a target):
 ```sh
 gcc -std=gnu11 -O2 -I include -DRCC_ARCH_RV32 src/rcc/rcc.c -o build/rcc
 gcc -std=gnu11 -O2 -I include -DRCC_ARCH_THUMB2 src/rcc/rcc.c -o build/rcc-arm
+# ARMv6-M (RP2040):
+gcc -std=gnu11 -O2 -I include -DRCC_ARCH_THUMB1 src/rcc/rcc.c -o build/rcc-m0
 ```
 
-Checks that matter: `EM_RISCV`/`EM_ARM`, `ET_DYN`, the two `PT_LOAD` virtual
-addresses, `e_entry = 0`, and the LZ4TOS raw size.  Runtime verification is on
-QEMU: stage the `.tos` under `files.local/bin/` in TinyOS, build with
-`configs/rv32-rir.conf` or `configs/arm-rir.conf`, and run the programs through
-`tostest smoke`.  The native output must equal `rvm`'s output for the same
-image, minus the summary line.  The full procedure, including the 512 KiB
-ramdisk batching rule, is in TinyOS `docs/TESTING.md` 搂4.4/4.5.
+`tools/test.py` builds the host `rcc` and runs every golden case twice:
+once through `rvm` and once as native code (`PASS name (+native)`), comparing
+the program output line by line.  It does **not** perform ELF structural
+validation (`EM_RISCV`/`EM_ARM`, `ET_DYN`, `PT_LOAD`, `e_entry`): for that,
+inspect the generated ELF in TinyOS with `scripts/elfwin.py` (which also
+derives the `exec()` window from the PT_NOTE stack hint).  Board-side
+verification stages the `.tos` under `files.local/bin/` in TinyOS, builds with
+`configs/rv32-rir.conf` or `configs/arm-rir.conf`, and runs `tostest smoke`.
+The native output must equal `rvm`'s output for the same image, minus the
+summary line.  See TinyOS `docs/TESTING.md` §4.4/4.5 for the full procedure.
 
 ## Port
 

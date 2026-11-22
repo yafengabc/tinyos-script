@@ -1,5 +1,5 @@
 CC ?= gcc
-CFLAGS ?= -std=gnu11 -O2 -Wall -Iinclude
+CFLAGS ?= -std=gnu11 -O2 -fwrapv -Wall -Iinclude
 BUILD := build
 
 .PHONY: all test clean
