@@ -20,7 +20,7 @@ void *host_sbrk(intptr_t bytes)
     return p;
 }
 
-int host_stat(const char *path, struct tos_stat *st)
+int host_stat(const char *path, tos_stat_t *st)
 {
     FILE *f = fopen(path, "rb");
     long n;

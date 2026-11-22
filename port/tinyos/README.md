@@ -22,7 +22,12 @@ Pinned TinyOS state: code `451fa4d`, acceptance `451fa4d`.
   removes them.  Default images ship `csa` + `pvm`; those two are temporary
   comparison tools and will be retired once the register-IR path closes.
 - The target build uses TinyOS `user/lib.h`, not `include/lib.h` here.  The
-  host shim exists only for `tools/test.py`.
+  host shim exists only for `tools/test.py`.  Anything the pinned sources use
+  must exist in both, with the same name: the shim cannot define
+  `struct stat` (glibc's <fcntl.h> owns it), so both sides provide
+  `tos_stat_t` (shim: its own struct; TinyOS: a typedef over `struct stat`).
+  `tools/check_target_build.py --tos <TinyOS>` compiles the pinned sources for
+  rv32 against the target headers; CI runs it.
 - The image format is detected by the `RIR2` magic.  Do not add or check
   filename suffixes in the shell, compiler or VM.
 - `csc` needs a source file and an output path; `rvm` needs only the image.

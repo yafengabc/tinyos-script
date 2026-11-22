@@ -16,3 +16,12 @@ jobs:
           python-version: "3.x"
       - name: Build and run golden tests
         run: make test
+      # The shipped image compiles csc/rvm/rcc against TinyOS user/lib.h, not
+      # this repository's host shim.  A rename in the shim once passed every
+      # golden test and broke every board build; this step is the target half.
+      - uses: actions/checkout@v4
+        with:
+          repository: yafengabc/TinyOS
+          path: TinyOS
+      - name: Compile pinned sources against TinyOS headers
+        run: python tools/check_target_build.py --tos TinyOS

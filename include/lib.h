@@ -23,15 +23,21 @@
 #define sbrk(n) host_sbrk(n)
 void *host_sbrk(intptr_t bytes);
 
-/* Minimal TinyOS stat(): py only checks regular file and size. */
+/* Minimal TinyOS stat(): py only checks regular file and size.
+ *
+ * The type is `tos_stat_t`, not `struct stat`: glibc's <fcntl.h> already owns
+ * that tag.  The target build gets the same typedef from TinyOS user/lib.h
+ * (over include/tos_abi.h's struct stat), so src/rvm.c compiles in both
+ * trees.  Keep the two typedefs in sync - tools/test.py cannot see the target
+ * one; tools/check_target_build.py does. */
 #define TOS_FTYPE_REG 0
 #define TOS_FTYPE_DIR 1
 #define TOS_FTYPE_CHR 2
-struct tos_stat {
+typedef struct tos_stat {
     uint32_t size;
     uint8_t type;
-};
-int host_stat(const char *path, struct tos_stat *st);
+} tos_stat_t;
+int host_stat(const char *path, tos_stat_t *st);
 #define stat(p, st) host_stat((p), (st))
 
 #if defined(_WIN32)
