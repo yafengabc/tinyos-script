@@ -101,7 +101,7 @@ static int load_file(const char *path, char **out, uint32_t *out_len)
     if (fd < 0)
         return -1;
 
-    struct stat st;
+    struct tos_stat st;
     if (stat(path, &st) < 0 || st.type != TOS_FTYPE_REG) {
         close(fd);
         return -1;

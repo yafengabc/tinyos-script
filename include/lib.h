@@ -27,11 +27,11 @@ void *host_sbrk(int bytes);
 #define TOS_FTYPE_REG 0
 #define TOS_FTYPE_DIR 1
 #define TOS_FTYPE_CHR 2
-struct stat {
+struct tos_stat {
     uint32_t size;
     uint8_t type;
 };
-int host_stat(const char *path, struct stat *st);
+int host_stat(const char *path, struct tos_stat *st);
 #define stat(p, st) host_stat((p), (st))
 
 #if defined(_WIN32)
@@ -46,7 +46,7 @@ int host_stat(const char *path, struct stat *st);
  * inner open is not re-expanded (the preprocessor suppresses recursion), so
  * this forwards to the real function with O_RDONLY. */
 #define open(p)        open((p), O_RDONLY)
-#define create(p)      open((p), O_CREAT | O_TRUNC | O_WRONLY, 0644)
+#define create(p)      (open)((p), O_CREAT | O_TRUNC | O_WRONLY, 0644)
 #endif
 
 /* TinyOS puts() writes bytes only; stdio puts() appends a newline. */
@@ -78,7 +78,10 @@ static inline int adc_read(int chan) { (void)chan; return 2048; }
 static inline int pwm_count(void) { return 4; }
 static inline int pwm_set(int gpio, int hz, int duty) { (void)gpio; (void)hz; (void)duty; return 0; }
 static inline int pwm_off(int gpio) { (void)gpio; return 0; }
-static inline int sleep(int ms) { (void)ms; return 0; }
+static inline int tos_sleep_ms(int ms) { (void)ms; return 0; }
+/* Native NAT_SLEEP: the host shim never really sleeps.  A macro avoids the
+ * POSIX sleep(unsigned seconds) signature clash. */
+#define sleep(ms) tos_sleep_ms(ms)
 
 static inline int write_all(int fd, const void *buf, int len)
 {
