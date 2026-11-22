@@ -214,6 +214,32 @@ def main() -> int:
     else:
         print("PASS py demo")
 
+    # LZ4 extended-length tokens used to overflow a 256-byte stack buffer
+    # once the image passed ~65 KB (issue #6).  Build a >65 KB output with a
+    # stack-protected rcc and check it still produces the same bytes.
+    big_src = BUILD / "bigout.c"
+    big_rir = BUILD / "bigout.rir"
+    big_tos = BUILD / "bigout.tos"
+    big_src.write_text(
+        "".join(f"int f{i}(){{\n" + "    print(1);\n" * 400 +
+                "    return 0;\n}\n" for i in range(10)) +
+        "int main(){\n" + "".join(f"    f{i}();\n" for i in range(10)) +
+        "    return 0;\n}\n")
+    r = run([str(csc), str(big_src), str(big_rir)])
+    if r.returncode != 0:
+        print(f"FAIL bigout csc: {r.stdout}")
+        failed += 1
+    else:
+        rcc_sp = BUILD / ("rcc_sp" + EXE)
+        compile_one(ROOT / "src" / "rcc" / "rcc.c", rcc_sp,
+                    ["-O1", "-fstack-protector-all", "-DRCC_ARCH_RV32"])
+        r = run([str(rcc_sp), str(big_rir), str(big_tos)])
+        if r.returncode != 0 or not big_tos.exists() or big_tos.stat().st_size < 65000:
+            print(f"FAIL bigout rcc: rc={r.returncode} {r.stdout}")
+            failed += 1
+        else:
+            print(f"PASS bigout ({big_tos.stat().st_size} bytes, stack-protected rcc)")
+
     print("ALL TESTS PASS" if failed == 0 else f"{failed} TEST(S) FAILED")
     return 0 if failed == 0 else 1
 
