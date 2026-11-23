@@ -84,6 +84,12 @@ static inline int adc_read(int chan) { (void)chan; return 2048; }
 static inline int pwm_count(void) { return 4; }
 static inline int pwm_set(int gpio, int hz, int duty) { (void)gpio; (void)hz; (void)duty; return 0; }
 static inline int pwm_off(int gpio) { (void)gpio; return 0; }
+/* Host stubs for the two new script natives. */
+#define POLLIN 0x001
+struct pollfd { int fd; short events; short revents; };
+static inline int poll(struct pollfd *p, int n, int t) { (void)p; (void)n; (void)t; return 0; }
+static inline int yield(void) { return 0; }
+
 static inline int tos_sleep_ms(int ms) { (void)ms; return 0; }
 /* Native NAT_SLEEP: the host shim never really sleeps.  A macro avoids the
  * POSIX sleep(unsigned seconds) signature clash. */

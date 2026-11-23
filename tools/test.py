@@ -89,6 +89,7 @@ def main() -> int:
         # 256 instructions.  rvm now pages the image in, so it runs them too.
         ("bigcode", ["12829"]),          # 31 functions, ~6 KiB source
         ("many100", ["20009"]),          # 111 functions: the UFCS shape
+        ("yield1", ["0"]),               # the cooperative-scheduling native
         ("bigir", ["1325"]),             # ~1.4k IR, board-compilable
         ("hugeir", ["1536"]),            # ~3k IR: 12 pages, 2-slot board cache
 
