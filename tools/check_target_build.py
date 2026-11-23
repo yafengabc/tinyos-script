@@ -35,7 +35,10 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--tos", default=os.environ.get("TINYOS", ""),
                     help="path to the TinyOS checkout (or set TINYOS)")
-    ap.add_argument("--cc", default=os.environ.get("CC", "cc"))
+    ap.add_argument("--cc", default=os.environ.get("CC", ""),
+                    help="compiler to use; defaults to clang for the target "
+                         "parse (gcc does not accept --target=...) and to "
+                         "$CC/cc for --host-cc")
     ap.add_argument("--host-cc", action="store_true",
                     help="parse for the host instead of rv32 (does not cover the "
                          "target-only native block; for debugging only)")
@@ -45,6 +48,11 @@ def main() -> int:
     args = ap.parse_args()
     if not args.tos:
         ap.error("--tos is required (or set TINYOS)")
+    if not args.cc:
+        # The rv32 parse needs clang: `--target=riscv32-unknown-elf` is a clang
+        # flag and gcc (the usual `cc` on Linux) rejects it.  Host mode may use
+        # whatever CC/cc the caller has.
+        args.cc = "cc" if args.host_cc else "clang"
     tos = Path(args.tos).resolve()
     for hdr in ("user/lib.h", "include/tos_abi.h", "kernel/types.h"):
         if not (tos / hdr).is_file():
@@ -68,6 +76,9 @@ def main() -> int:
         if p.returncode != 0:
             print("FAIL %s against %s" % (name, tos))
             print(p.stdout.rstrip())
+            if target and ("unrecognized command-line option" in p.stdout
+                           or "unknown argument" in p.stdout):
+                print("hint: the rv32 parse needs clang; pass --cc clang")
             failed.append(name)
         else:
             print("PASS %s" % name)

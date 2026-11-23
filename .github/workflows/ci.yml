@@ -23,5 +23,7 @@ jobs:
         with:
           repository: yafengabc/TinyOS
           path: TinyOS
+      - name: clang for the target parse
+        run: command -v clang || (sudo apt-get update && sudo apt-get install -y clang)
       - name: Compile pinned sources against TinyOS headers
-        run: python tools/check_target_build.py --tos TinyOS
+        run: python tools/check_target_build.py --tos TinyOS --cc clang
